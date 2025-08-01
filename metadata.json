@@ -1,0 +1,6 @@
+{
+  "name": "SOKER FP",
+  "description": "Una aplicación de gestión interna para un taller de reparación de electrodomésticos para realizar un seguimiento de clientes, servicios, inventario y usuarios, con un panel para la descripción general del negocio.",
+  "requestFramePermissions": [],
+  "prompt": ""
+}
