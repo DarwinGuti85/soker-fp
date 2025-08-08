@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
-import { EyeIcon, EyeOffIcon, FacebookIcon, TwitterIcon } from './ui/icons';
+import { EyeIcon, EyeOffIcon } from './ui/icons';
 import { useNavigate } from 'react-router-dom';
 
 const Login: React.FC = () => {
@@ -34,20 +34,22 @@ const Login: React.FC = () => {
 
     return (
         <div 
-            className="min-h-screen bg-gray-900 flex items-center justify-center p-4 font-sans bg-cover bg-center"
-            style={{ backgroundImage: "url('https://lara-cultural.blogspot.com/2012/04/el-obelisco-monumento-construido-en.html')" }}
+            className="min-h-screen flex items-center justify-center p-4 font-sans relative overflow-hidden"
         >
-            {/* Overlay */}
-            <div className="absolute inset-0 w-full h-full bg-black/50"></div>
+            <div className="water"></div>
             
             {/* Login Form Container */}
-            <div className="relative z-10 w-full max-w-sm bg-black/40 backdrop-blur-md rounded-xl shadow-2xl p-8 space-y-6">
+            <div className="relative z-10 w-full max-w-sm bg-brand-bg-light/80 backdrop-blur-lg border border-white/10 rounded-xl shadow-2xl p-8 space-y-6">
                 
                 {/* Header */}
-                <div className="text-center space-y-2">
-                    <img src="https://i.ibb.co/3s3wz5c/soker-logo.jpg" alt="Logo SOKER FP" className="w-20 h-20 mx-auto rounded-full mb-3" />
-                    <h1 className="text-2xl font-bold text-white tracking-wider">Bienvenido</h1>
-                    <p className="text-gray-300 text-sm">¿Ya tienes una cuenta?</p>
+                <div className="text-center space-y-4">
+                    <h1 className="font-extrabold text-5xl text-white tracking-tighter" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.5)'}}>
+                        <span className="text-brand-orange">SOKER</span> FP
+                    </h1>
+                    <div>
+                        <h2 className="text-2xl font-bold text-white tracking-wider">Bienvenido</h2>
+                        <p className="text-gray-300 text-sm">Ingresa tus credenciales para acceder.</p>
+                    </div>
                 </div>
                 
                 {/* Form */}
@@ -59,7 +61,7 @@ const Login: React.FC = () => {
                             placeholder="Usuario o Email"
                             value={loginInput}
                             onChange={(e) => setLoginInput(e.target.value)}
-                            className="w-full px-4 py-2.5 bg-black/50 border border-gray-600 rounded-md text-white placeholder-gray-400 focus:ring-brand-orange/50 focus:border-brand-orange focus:outline-none transition-colors duration-300"
+                            className="w-full px-4 py-2.5 bg-brand-bg-dark/70 border border-gray-700 rounded-md text-white placeholder-gray-400 focus:ring-brand-orange/50 focus:border-brand-orange focus:outline-none transition-colors duration-300"
                             required
                             autoCapitalize="none"
                         />
@@ -72,7 +74,7 @@ const Login: React.FC = () => {
                             placeholder="Contraseña"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
-                            className="w-full px-4 py-2.5 bg-black/50 border border-gray-600 rounded-md text-white placeholder-gray-400 focus:ring-brand-orange/50 focus:border-brand-orange focus:outline-none transition-colors duration-300"
+                            className="w-full px-4 py-2.5 bg-brand-bg-dark/70 border border-gray-700 rounded-md text-white placeholder-gray-400 focus:ring-brand-orange/50 focus:border-brand-orange focus:outline-none transition-colors duration-300"
                             required
                         />
                         <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-400 hover:text-brand-orange transition-colors duration-300">
@@ -98,23 +100,6 @@ const Login: React.FC = () => {
                     >
                         {isLoading ? 'INGRESANDO...' : 'INGRESAR'}
                     </button>
-                    
-                    <div className="flex items-center pt-2">
-                        <hr className="flex-grow border-gray-600" />
-                        <span className="mx-2 text-gray-400 text-xs font-semibold">O Inicia Sesión Con</span>
-                        <hr className="flex-grow border-gray-600" />
-                    </div>
-                    
-                    <div className="flex flex-col sm:flex-row gap-4">
-                        <button type="button" className="w-full flex items-center justify-center gap-2 py-2 bg-gray-200/95 hover:bg-white text-gray-800 font-semibold rounded-md transition-colors duration-300">
-                           <FacebookIcon className="w-5 h-5"/>
-                            Facebook
-                        </button>
-                        <button type="button" className="w-full flex items-center justify-center gap-2 py-2 bg-gray-200/95 hover:bg-white text-gray-800 font-semibold rounded-md transition-colors duration-300">
-                            <TwitterIcon className="w-5 h-5"/>
-                            Twitter
-                        </button>
-                    </div>
                 </form>
             </div>
         </div>

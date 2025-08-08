@@ -25,7 +25,7 @@
               pulseGlow: {
                 '0%, 100%': { opacity: '0.7', transform: 'scale(1)' },
                 '50%': { opacity: '1', transform: 'scale(1.05)' },
-              }
+              },
             },
             animation: {
               fadeInUp: 'fadeInUp 0.6s ease-out forwards',
@@ -35,6 +35,72 @@
         },
       }
     </script>
+    <style>
+      body {
+        background-color: #0D0D0D;
+      }
+      .water {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        
+        /* Liquid color */
+        background: linear-gradient(180deg, #300155 0%, #0D021F 100%);
+
+        /* Gooey effect */
+        filter: blur(35px) contrast(40);
+        
+        z-index: 0;
+        overflow: hidden; /* Prevent blobs from showing outside on scale */
+      }
+
+      .water::before,
+      .water::after {
+        content: "";
+        position: absolute;
+        border-radius: 50%;
+        transform-origin: center;
+      }
+
+      .water::before {
+        /* Blob 1: Orange/Yellow */
+        width: 250px;
+        height: 250px;
+        top: 50%;
+        left: 50%;
+        background: radial-gradient(ellipse at center, #ffc837, #ff8008);
+        animation: move-blob-1 18s infinite ease-in-out;
+      }
+
+      .water::after {
+        /* Blob 2: Pink/Magenta */
+        width: 200px;
+        height: 200px;
+        top: 50%;
+        left: 50%;
+        background: radial-gradient(ellipse at center, #e052a0, #f72585);
+        animation: move-blob-2 22s infinite ease-in-out;
+        animation-delay: -5s; /* Stagger animations */
+      }
+
+      @keyframes move-blob-1 {
+        0%   { transform: translate(-50%, -30%) scale(1.2); }
+        25%  { transform: translate(-40%, -80%) scale(0.9); }
+        50%  { transform: translate(-60%, -20%) scale(1.3); }
+        75%  { transform: translate(-50%, -60%) scale(1.1); }
+        100% { transform: translate(-50%, -30%) scale(1.2); }
+      }
+
+      @keyframes move-blob-2 {
+        0%   { transform: translate(-50%, -70%) scale(1); }
+        20%  { transform: translate(-30%, -30%) scale(1.4); }
+        40%  { transform: translate(-80%, -50%) scale(0.8); }
+        60%  { transform: translate(-40%, -90%) scale(1.2); }
+        80%  { transform: translate(-50%, -40%) scale(1); }
+        100% { transform: translate(-50%, -70%) scale(1); }
+      }
+    </style>
   <script type="importmap">
 {
   "imports": {
