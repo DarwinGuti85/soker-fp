@@ -6,22 +6,27 @@ import Dashboard from './components/Dashboard';
 import Services from './components/Services';
 import Clients from './components/Clients';
 import Inventory from './components/Inventory';
-import Users from './components/Users';
+import Settings from './components/Settings';
 import Billing from './components/Billing';
 import { useAuth } from './hooks/useAuth';
-import { UserRole } from './types';
+import { UserRole, Module, PermissionSet } from './types';
 import Login from './components/Login';
 
-const ProtectedRoute: React.FC<{ children: React.ReactNode, allowedRoles?: UserRole[] }> = ({ children, allowedRoles }) => {
-  const { user } = useAuth();
+const ProtectedRoute: React.FC<{ 
+  children: React.ReactNode, 
+  module: Module,
+  permission: keyof PermissionSet
+}> = ({ children, module, permission }) => {
+  const { user, hasPermission } = useAuth();
   
   if (!user) {
     return <Navigate to="/login" replace />;
   }
 
-  if (allowedRoles && !allowedRoles.includes(user.role)) {
+  if (!hasPermission(module, permission)) {
     return <Navigate to="/dashboard" replace />;
   }
+
   return <>{children}</>;
 };
 
@@ -39,30 +44,30 @@ const MainLayout: React.FC = () => (
         <div className="max-w-7xl mx-auto">
           <Routes>
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
-            <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path="/dashboard" element={<ProtectedRoute module="dashboard" permission="view"><Dashboard /></ProtectedRoute>} />
             <Route path="/services" element={
-              <ProtectedRoute allowedRoles={[UserRole.ADMIN, UserRole.TECHNICIAN, UserRole.CASHIER]}>
+              <ProtectedRoute module="services" permission="view">
                 <Services />
               </ProtectedRoute>
             } />
             <Route path="/clients" element={
-              <ProtectedRoute allowedRoles={[UserRole.ADMIN, UserRole.CASHIER]}>
+              <ProtectedRoute module="clients" permission="view">
                 <Clients />
               </ProtectedRoute>
             } />
             <Route path="/billing" element={
-              <ProtectedRoute allowedRoles={[UserRole.ADMIN, UserRole.CASHIER]}>
+              <ProtectedRoute module="billing" permission="view">
                 <Billing />
               </ProtectedRoute>
             } />
             <Route path="/inventory" element={
-              <ProtectedRoute allowedRoles={[UserRole.ADMIN, UserRole.TECHNICIAN]}>
+              <ProtectedRoute module="inventory" permission="view">
                 <Inventory />
               </ProtectedRoute>
             } />
-            <Route path="/users" element={
-              <ProtectedRoute allowedRoles={[UserRole.ADMIN]}>
-                <Users />
+            <Route path="/settings" element={
+              <ProtectedRoute module="settings" permission="view">
+                <Settings />
               </ProtectedRoute>
             } />
             <Route path="*" element={<Navigate to="/dashboard" replace />} />

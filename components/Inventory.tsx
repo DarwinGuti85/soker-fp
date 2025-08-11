@@ -1,6 +1,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { useData } from '../hooks/useData';
+import { useAuth } from '../hooks/useAuth';
 import { InventoryItem } from '../types';
 import { CloseIcon, EditIcon } from './ui/icons';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, PieChart, Pie, Cell, CartesianGrid } from 'recharts';
@@ -15,15 +16,78 @@ const ChartPanel: React.FC<{ title: string, children: React.ReactNode }> = ({ ti
     </div>
 );
 
+const ItemModal: React.FC<{
+    editingItem: InventoryItem | null;
+    onClose: () => void;
+    onSave: (itemData: Omit<InventoryItem, 'id'>, id?:string) => void;
+}> = ({ editingItem, onClose, onSave }) => {
+    const initialFormState: Omit<InventoryItem, 'id'> = { name: '', sku: '', quantity: 0, price: 0 };
+    const [formData, setFormData] = useState<Omit<InventoryItem, 'id'>>(
+        editingItem ? { ...editingItem } : initialFormState
+    );
+
+    const handleFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value, type } = e.target;
+        setFormData(prev => ({
+            ...prev,
+            [name]: type === 'number' ? parseFloat(value) || 0 : value
+        }));
+    };
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!formData.name || !formData.sku) {
+            alert('Nombre y SKU son requeridos.');
+            return;
+        }
+        onSave(formData, editingItem?.id);
+    };
+
+    return (
+        <div className="fixed inset-0 bg-black/70 z-50 flex justify-center items-center p-4" aria-modal="true" role="dialog">
+            <div className="bg-brand-bg-light rounded-lg shadow-2xl border border-gray-700/50 w-full max-w-lg">
+                <div className="sticky top-0 bg-brand-bg-light z-10 px-6 py-4 border-b border-gray-700 flex justify-between items-center">
+                    <h2 className="text-2xl font-bold text-white">{editingItem ? 'Editar Artículo' : 'Añadir Nuevo Artículo'}</h2>
+                    <button onClick={onClose} className="text-gray-400 hover:text-white">
+                        <CloseIcon className="h-6 w-6" />
+                    </button>
+                </div>
+                <form onSubmit={handleSubmit} className="p-6 space-y-6">
+                    <div className="space-y-2">
+                        <label htmlFor="name" className="block text-sm font-medium text-brand-text-dark">Nombre del Artículo</label>
+                        <input type="text" id="name" name="name" value={formData.name} onChange={handleFormChange} className="w-full bg-brand-bg-dark border border-gray-600 rounded-md p-2 focus:ring-brand-orange focus:border-brand-orange" required />
+                    </div>
+                    <div className="space-y-2">
+                        <label htmlFor="sku" className="block text-sm font-medium text-brand-text-dark">SKU</label>
+                        <input type="text" id="sku" name="sku" value={formData.sku} onChange={handleFormChange} className="w-full bg-brand-bg-dark border border-gray-600 rounded-md p-2 focus:ring-brand-orange focus:border-brand-orange" required />
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <label htmlFor="quantity" className="block text-sm font-medium text-brand-text-dark">Cantidad</label>
+                            <input type="number" id="quantity" name="quantity" value={formData.quantity} onChange={handleFormChange} className="w-full bg-brand-bg-dark border border-gray-600 rounded-md p-2 focus:ring-brand-orange focus:border-brand-orange" required min="0" />
+                        </div>
+                        <div className="space-y-2">
+                            <label htmlFor="price" className="block text-sm font-medium text-brand-text-dark">Precio</label>
+                            <input type="number" id="price" name="price" value={formData.price} onChange={handleFormChange} className="w-full bg-brand-bg-dark border border-gray-600 rounded-md p-2 focus:ring-brand-orange focus:border-brand-orange" required min="0" step="any" />
+                        </div>
+                    </div>
+                    <div className="flex justify-end space-x-4 pt-4">
+                        <button type="button" onClick={onClose} className="bg-gray-600 text-white px-6 py-2 rounded-md font-semibold hover:bg-gray-500 transition-colors">Cancelar</button>
+                        <button type="submit" className="bg-brand-orange text-white px-6 py-2 rounded-md font-semibold hover:bg-orange-600 transition-colors">Guardar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    );
+};
+
 
 const Inventory: React.FC = () => {
   const { inventory, addInventoryItem, updateInventoryItem } = useData();
+  const { hasPermission } = useAuth();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
   const [filter, setFilter] = useState('');
-
-  const initialFormState: Omit<InventoryItem, 'id'> = { name: '', sku: '', quantity: 0, price: 0 };
-  const [formData, setFormData] = useState<Omit<InventoryItem, 'id'> & { id?: string }>(initialFormState);
 
   const filteredItems = useMemo(() => {
     if (!filter) return inventory;
@@ -72,90 +136,36 @@ const Inventory: React.FC = () => {
 
 
   const handleOpenModal = (item: InventoryItem | null) => {
-    if (item) {
-      setEditingItem(item);
-      setFormData(item);
-    } else {
-      setEditingItem(null);
-      setFormData(initialFormState);
-    }
+    setEditingItem(item);
     setIsModalOpen(true);
   };
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setEditingItem(null);
-    setFormData(initialFormState);
   };
   
-  const handleFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === 'number' ? parseFloat(value) || 0 : value
-    }));
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formData.name || !formData.sku) {
-        alert('Nombre y SKU son requeridos.');
-        return;
-    }
-
-    if (editingItem) {
-      updateInventoryItem(editingItem.id, formData);
+  const handleSaveItem = (itemData: Omit<InventoryItem, 'id'>, id?: string) => {
+    if (id) {
+        updateInventoryItem(id, itemData);
     } else {
-      addInventoryItem(formData as Omit<InventoryItem, 'id'>);
+        addInventoryItem(itemData);
     }
     handleCloseModal();
   };
 
-  const ItemModal = () => (
-    <div className="fixed inset-0 bg-black/70 z-50 flex justify-center items-center p-4" aria-modal="true" role="dialog">
-      <div className="bg-brand-bg-light rounded-lg shadow-2xl border border-gray-700/50 w-full max-w-lg">
-        <div className="sticky top-0 bg-brand-bg-light z-10 px-6 py-4 border-b border-gray-700 flex justify-between items-center">
-          <h2 className="text-2xl font-bold text-white">{editingItem ? 'Editar Artículo' : 'Añadir Nuevo Artículo'}</h2>
-          <button onClick={handleCloseModal} className="text-gray-400 hover:text-white">
-            <CloseIcon className="h-6 w-6" />
-          </button>
-        </div>
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
-          <div className="space-y-2">
-            <label htmlFor="name" className="block text-sm font-medium text-brand-text-dark">Nombre del Artículo</label>
-            <input type="text" id="name" name="name" value={formData.name} onChange={handleFormChange} className="w-full bg-brand-bg-dark border border-gray-600 rounded-md p-2 focus:ring-brand-orange focus:border-brand-orange" required />
-          </div>
-          <div className="space-y-2">
-            <label htmlFor="sku" className="block text-sm font-medium text-brand-text-dark">SKU</label>
-            <input type="text" id="sku" name="sku" value={formData.sku} onChange={handleFormChange} className="w-full bg-brand-bg-dark border border-gray-600 rounded-md p-2 focus:ring-brand-orange focus:border-brand-orange" required />
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-             <div className="space-y-2">
-                <label htmlFor="quantity" className="block text-sm font-medium text-brand-text-dark">Cantidad</label>
-                <input type="number" id="quantity" name="quantity" value={formData.quantity} onChange={handleFormChange} className="w-full bg-brand-bg-dark border border-gray-600 rounded-md p-2 focus:ring-brand-orange focus:border-brand-orange" required min="0" />
-            </div>
-            <div className="space-y-2">
-                <label htmlFor="price" className="block text-sm font-medium text-brand-text-dark">Precio</label>
-                <input type="number" id="price" name="price" value={formData.price} onChange={handleFormChange} className="w-full bg-brand-bg-dark border border-gray-600 rounded-md p-2 focus:ring-brand-orange focus:border-brand-orange" required min="0" step="any" />
-            </div>
-          </div>
-          <div className="flex justify-end space-x-4 pt-4">
-            <button type="button" onClick={handleCloseModal} className="bg-gray-600 text-white px-6 py-2 rounded-md font-semibold hover:bg-gray-500 transition-colors">Cancelar</button>
-            <button type="submit" className="bg-brand-orange text-white px-6 py-2 rounded-md font-semibold hover:bg-orange-600 transition-colors">Guardar</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
+  const canEdit = hasPermission('inventory', 'edit');
 
   return (
     <div className="space-y-6">
-      {isModalOpen && <ItemModal />}
+      {isModalOpen && canEdit && <ItemModal editingItem={editingItem} onClose={handleCloseModal} onSave={handleSaveItem} />}
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold text-white">Inventario</h1>
-        <button onClick={() => handleOpenModal(null)} className="bg-brand-orange text-white px-4 py-2 rounded-md font-semibold hover:bg-orange-600 transition-colors">
-          Añadir Nuevo Artículo
-        </button>
+        {canEdit && (
+            <button onClick={() => handleOpenModal(null)} className="bg-brand-orange text-white px-4 py-2 rounded-md font-semibold hover:bg-orange-600 transition-colors">
+            Añadir Nuevo Artículo
+            </button>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -190,9 +200,13 @@ const Inventory: React.FC = () => {
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-brand-text-dark">{new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(item.price)}</td>
                             <td className="px-6 py-4 whitespace-nowrap text-left text-sm font-medium">
-                                <button onClick={() => handleOpenModal(item)} className="text-brand-orange hover:text-orange-400 transition-colors">
-                                    <EditIcon className="w-5 h-5"/>
-                                </button>
+                                {canEdit ? (
+                                    <button onClick={() => handleOpenModal(item)} className="text-brand-orange hover:text-orange-400 transition-colors">
+                                        <EditIcon className="w-5 h-5"/>
+                                    </button>
+                                ) : (
+                                    <span className="text-gray-500">-</span>
+                                )}
                             </td>
                             </tr>
                         ))}

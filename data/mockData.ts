@@ -1,4 +1,12 @@
-import { User, UserRole, Client, ServiceOrder, ServiceStatus, InventoryItem, Invoice, InvoiceStatus } from '../types';
+import { User, UserRole, Client, ServiceOrder, ServiceStatus, InventoryItem, Invoice, InvoiceStatus, CompanyInfo } from '../types';
+
+export const MOCK_COMPANY_INFO: CompanyInfo = {
+    name: 'SOKER FP, C.A.',
+    taxId: 'J-12345678-9',
+    address: 'Av. Principal, Edif. Soker, Caracas',
+    email: 'contacto@sokerfp.com',
+    phone: '+58 212-555-1234'
+};
 
 export const MOCK_USERS: User[] = [
   { id: 'user-1', username: 'admin', firstName: 'Admin', lastName: 'Soker', email: 'admin@soker.com', role: UserRole.ADMIN, password: '54321' },
@@ -14,19 +22,19 @@ const getRandomDate = (start: Date, end: Date): Date => {
 };
 
 const baseClients: Client[] = [
-    { id: 'client-1', firstName: 'Santiago', lastName: 'Rodriguez', whatsapp: '3101234567', email: 'santiago.r@email.com', address: 'Cra 7 # 156-10, Bogotá', createdAt: new Date(2024, 4, 15).toISOString() },
-    { id: 'client-2', firstName: 'Valentina', lastName: 'Gomez', whatsapp: '3112345678', email: 'valentina.g@email.com', address: 'Cl 10 # 43A-30, Medellín', createdAt: new Date(2024, 4, 1).toISOString() },
+    { id: 'client-1', firstName: 'Santiago', lastName: 'Rodriguez', whatsapp: '3101234567', email: 'santiago.r@email.com', address: 'Cra 7 # 156-10, Bogotá', createdAt: new Date(2024, 4, 15).toISOString(), taxId: 'V-12345678-9' },
+    { id: 'client-2', firstName: 'Valentina', lastName: 'Gomez', whatsapp: '3112345678', email: 'valentina.g@email.com', address: 'Cl 10 # 43A-30, Medellín', createdAt: new Date(2024, 4, 1).toISOString(), taxId: 'V-87654321-0' },
     { id: 'client-3', firstName: 'Matias', lastName: 'Gonzalez', whatsapp: '3123456789', email: 'matias.g@email.com', address: 'Av. 3 Nte # 23-45, Cali', createdAt: new Date(2024, 3, 20).toISOString() },
-    { id: 'client-4', firstName: 'Isabella', lastName: 'Perez', whatsapp: '3134567890', email: 'isabella.p@email.com', address: 'Cra 51B # 82-254, Barranquilla', createdAt: new Date(2024, 3, 10).toISOString() },
+    { id: 'client-4', firstName: 'Isabella', lastName: 'Perez', whatsapp: '3134567890', email: 'isabella.p@email.com', address: 'Cra 51B # 82-254, Barranquilla', createdAt: new Date(2024, 3, 10).toISOString(), taxId: 'J-11223344-5' },
     { id: 'client-5', firstName: 'Sebastian', lastName: 'Martinez', whatsapp: '3145678901', email: 'sebastian.m@email.com', address: 'Cl 35 # 19-45, Bucaramanga', createdAt: new Date(2024, 2, 25).toISOString() },
     { id: 'client-6', firstName: 'Camila', lastName: 'Sanchez', whatsapp: '3206789012', email: 'camila.s@email.com', address: 'Cra 23 # 65-30, Manizales', createdAt: new Date(2024, 2, 5).toISOString() },
     { id: 'client-7', firstName: 'Nicolas', lastName: 'Ramirez', whatsapp: '3217890123', email: 'nicolas.r@email.com', address: 'Av. El Dorado # 26-33, Bogotá', createdAt: new Date(2024, 1, 18).toISOString() },
-    { id: 'client-8', firstName: 'Mariana', lastName: 'Diaz', whatsapp: '3228901234', email: 'mariana.d@email.com', address: 'Poblado, Cra 34 # 7-50, Medellín', createdAt: new Date(2024, 1, 2).toISOString() },
+    { id: 'client-8', firstName: 'Mariana', lastName: 'Diaz', whatsapp: '3228901234', email: 'mariana.d@email.com', address: 'Poblado, Cra 34 # 7-50, Medellín', createdAt: new Date(2024, 1, 2).toISOString(), taxId: 'V-18273645-5' },
     { id: 'client-9', firstName: 'Samuel', lastName: 'Hernandez', whatsapp: '3009012345', email: 'samuel.h@email.com', address: 'Cl 5 # 38-12, Cali', createdAt: new Date(2024, 0, 28).toISOString() },
     { id: 'client-10', firstName: 'Daniela', lastName: 'Torres', whatsapp: '3011234567', email: 'daniela.t@email.com', address: 'Cra 43 # 75B-12, Barranquilla', createdAt: new Date(2024, 0, 10).toISOString() },
     { id: 'client-11', firstName: 'Alejandro', lastName: 'Vargas', whatsapp: '3022345678', email: 'alejandro.v@email.com', address: 'Calle 116 # 15-60, Bogotá', createdAt: new Date(2023, 11, 22).toISOString() },
     { id: 'client-12', firstName: 'Gabriela', lastName: 'Rojas', whatsapp: '3033456789', email: 'gabriela.r@email.com', address: 'Laureles, Av. Nutibara, Medellín', createdAt: new Date(2023, 11, 5).toISOString() },
-    { id: 'client-13', firstName: 'Andres', lastName: 'Moreno', whatsapp: '3044567890', email: 'andres.m@email.com', address: 'Ciudad Jardin, Cra 105 # 14-02, Cali', createdAt: new Date(2023, 10, 15).toISOString() },
+    { id: 'client-13', firstName: 'Andres', lastName: 'Moreno', whatsapp: '3044567890', email: 'andres.m@email.com', address: 'Ciudad Jardin, Cra 105 # 14-02, Cali', createdAt: new Date(2023, 10, 15).toISOString(), taxId: 'V-15839402-1' },
     { id: 'client-14', firstName: 'Sofia', lastName: 'Castro', whatsapp: '3055678901', email: 'sofia.c@email.com', address: 'Cra 46 # 84-76, Barranquilla', createdAt: new Date(2023, 10, 1).toISOString() },
     { id: 'client-15', firstName: 'Felipe', lastName: 'Jimenez', whatsapp: '3109876543', email: 'felipe.j@email.com', address: 'Usaquén, Cra 9 # 110-20, Bogotá', createdAt: new Date(2023, 9, 20).toISOString() },
     { id: 'client-16', firstName: 'Laura', lastName: 'Ortiz', whatsapp: '3118765432', email: 'laura.o@email.com', address: 'Envigado, Dg 40 # 33-15, Medellín', createdAt: new Date(2023, 9, 8).toISOString() },
@@ -51,6 +59,7 @@ const generatedClients: Client[] = Array.from({ length: 70 }, (_, i) => {
     const firstName = getRandom(firstNames);
     const lastName = getRandom(lastNames);
     const cityInfo = getRandom(cities);
+    const hasTaxId = Math.random() > 0.7; // 30% chance of having a taxId
     return {
         id: `client-${21 + i}`,
         firstName,
@@ -59,6 +68,7 @@ const generatedClients: Client[] = Array.from({ length: 70 }, (_, i) => {
         email: `${firstName.toLowerCase()}.${lastName.toLowerCase()}${i}@email.com`,
         address: `Calle ${getRandomInt(1,150)} #${getRandomInt(10,99)}-${getRandomInt(10,99)}, ${cityInfo.city}`,
         createdAt: getRandomDate(oneYearAgo, now).toISOString(),
+        taxId: hasTaxId ? `V-${getRandomInt(10000000, 28000000)}-${getRandomInt(0,9)}` : undefined
     };
 });
 
@@ -101,7 +111,7 @@ const baseServices: ServiceOrder[] = [
     id: 'service-1', client: MOCK_CLIENTS[0], applianceName: 'Refrigerador', applianceType: 'Samsung RF28HFE', clientDescription: 'No enfría correctamente. El compresor parece funcionar constantemente.', technicianNotes: 'Revisado el compresor, se detecta fuga de gas. Se necesita recarga y sellado.', status: ServiceStatus.IN_PROGRESS, technician: MOCK_USERS[2], createdAt: '2024-05-10T10:00:00Z', updatedAt: '2024-05-11T14:30:00Z'
   },
   {
-    id: 'service-2', client: MOCK_CLIENTS[1], applianceName: 'Lavadora', applianceType: 'LG WM3700HWA', clientDescription: 'Fuga de agua por la parte inferior durante el ciclo de centrifugado.', technicianNotes: 'Pendiente de revisión inicial.', status: ServiceStatus.PENDING, technician: MOCK_USERS[3], createdAt: '2024-05-12T11:00:00Z', updatedAt: '2024-05-12T11:00:00Z'
+    id: 'service-2', client: MOCK_CLIENTS[1], applianceName: 'Lavadora', applianceType: 'LG WM3700HWA', clientDescription: 'Fuga de agua por la parte inferior durante el ciclo de centrifugado.', technicianNotes: 'Pendiente de revisión inicial.', status: ServiceStatus.PENDING, createdAt: '2024-05-12T11:00:00Z', updatedAt: '2024-05-12T11:00:00Z'
   },
   {
     id: 'service-3', client: MOCK_CLIENTS[2], applianceName: 'Horno', applianceType: 'GE Profile', clientDescription: 'La resistencia de calentamiento no funciona.', technicianNotes: 'Se reemplazó la resistencia (parte GE-HEATER-789). El equipo funciona correctamente.', status: ServiceStatus.COMPLETED, technician: MOCK_USERS[2], createdAt: '2024-04-20T09:00:00Z', updatedAt: '2024-04-22T16:00:00Z', partsUsed: [MOCK_INVENTORY[2]]
@@ -119,9 +129,13 @@ const appliances = [
 
 const generatedServices: ServiceOrder[] = Array.from({ length: 720 }, (_, i) => {
     const client = getRandom(MOCK_CLIENTS);
-    const technician = getRandom(MOCK_USERS.filter(u => u.role === UserRole.TECHNICIAN));
     const status = getRandom(Object.values(ServiceStatus));
     const appliance = getRandom(appliances);
+
+    let technician: User | undefined = getRandom(MOCK_USERS.filter(u => u.role === UserRole.TECHNICIAN));
+    if (status === ServiceStatus.PENDING && Math.random() > 0.5) {
+        technician = undefined;
+    }
     
     const createdAtDate = getRandomDate(oneYearAgo, now);
     let updatedAtDate = new Date(createdAtDate);
@@ -167,18 +181,24 @@ const completedServices = MOCK_SERVICES.filter(s => s.status === ServiceStatus.C
 export const MOCK_INVOICES: Invoice[] = completedServices.slice(0, 45).map((service, index) => {
     const isPaid = Math.random() > 0.3; // 70% chance of being paid
     const issueDate = new Date(service.updatedAt);
-    let totalAmount = getRandomInt(80000, 250000);
-    
-    if(service.partsUsed && service.partsUsed.length > 0) {
-        const partsTotal = service.partsUsed.reduce((sum, part) => sum + part.price, 0);
-        totalAmount += partsTotal;
-    }
+
+    const revisionPrice = 50000;
+    const laborCost = getRandomInt(80000, 250000);
+    const partsTotal = service.partsUsed?.reduce((sum, part) => sum + part.price, 0) || 0;
+    const subtotal = revisionPrice + laborCost + partsTotal;
+    const taxAmount = subtotal * 0.16;
+    const totalAmount = subtotal + taxAmount;
     
     return {
         id: `FACT-${String(1001 + index).padStart(4, '0')}`,
         serviceOrder: service,
         issueDate: issueDate.toISOString(),
-        totalAmount: totalAmount,
-        status: isPaid ? InvoiceStatus.PAID : InvoiceStatus.UNPAID
+        status: isPaid ? InvoiceStatus.PAID : InvoiceStatus.UNPAID,
+        revisionPrice,
+        laborCost,
+        partsTotal,
+        subtotal,
+        taxAmount,
+        totalAmount
     };
 });

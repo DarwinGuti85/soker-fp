@@ -1,7 +1,6 @@
-
 import React, { createContext, useState, useContext, ReactNode, useCallback } from 'react';
-import { ServiceOrder, Client, InventoryItem, Invoice, User, UserRole, InvoiceStatus } from '../types';
-import { MOCK_SERVICES, MOCK_CLIENTS, MOCK_INVENTORY, MOCK_INVOICES, MOCK_USERS } from '../data/mockData';
+import { ServiceOrder, Client, InventoryItem, Invoice, User, UserRole, InvoiceStatus, CompanyInfo } from '../types';
+import { MOCK_SERVICES, MOCK_CLIENTS, MOCK_INVENTORY, MOCK_INVOICES, MOCK_USERS, MOCK_COMPANY_INFO } from '../data/mockData';
 
 interface DataContextType {
   services: ServiceOrder[];
@@ -9,11 +8,17 @@ interface DataContextType {
   inventory: InventoryItem[];
   invoices: Invoice[];
   users: User[];
+  companyInfo: CompanyInfo;
+  revisionPrice: number;
+  updateCompanyInfo: (newInfo: CompanyInfo) => void;
+  updateRevisionPrice: (newPrice: number) => void;
   updateService: (serviceId: string, updates: Partial<ServiceOrder>) => void;
   addService: (serviceData: Omit<ServiceOrder, 'id' | 'createdAt' | 'updatedAt'>) => void;
   updateInventoryItem: (itemId: string, updates: Partial<InventoryItem>) => void;
   addInventoryItem: (itemData: Omit<InventoryItem, 'id'>) => void;
   addClient: (clientData: Omit<Client, 'id' | 'createdAt'>) => Client;
+  updateClient: (clientId: string, updates: Partial<Omit<Client, 'id' | 'createdAt' | 'taxId'>> & { taxId?: string }) => void;
+  deleteClient: (clientId: string) => void;
   updateInvoice: (invoiceId: string, updates: Partial<Invoice>) => void;
   addInvoice: (invoiceData: Omit<Invoice, 'id'>) => void;
 }
@@ -26,6 +31,16 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [inventory, setInventory] = useState<InventoryItem[]>(MOCK_INVENTORY);
   const [invoices, setInvoices] = useState<Invoice[]>(MOCK_INVOICES);
   const [users] = useState<User[]>(MOCK_USERS);
+  const [revisionPrice, setRevisionPrice] = useState<number>(50000);
+  const [companyInfo, setCompanyInfo] = useState<CompanyInfo>(MOCK_COMPANY_INFO);
+
+  const updateCompanyInfo = useCallback((newInfo: CompanyInfo) => {
+    setCompanyInfo(newInfo);
+  }, []);
+
+  const updateRevisionPrice = useCallback((newPrice: number) => {
+    setRevisionPrice(newPrice);
+  }, []);
 
   const updateService = useCallback((serviceId: string, updates: Partial<ServiceOrder>) => {
     setServices(prev =>
@@ -71,6 +86,25 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return newClient;
   }, []);
   
+  const updateClient = useCallback((clientId: string, updates: Partial<Omit<Client, 'id' | 'createdAt'>>) => {
+      setClients(prev =>
+          prev.map(client =>
+              client.id === clientId ? { ...client, ...updates } : client
+          )
+      );
+  }, []);
+
+  const deleteClient = useCallback((clientId: string) => {
+    // Prevent deleting clients that are associated with services.
+    // In a real DB, this would be a foreign key constraint.
+    const isClientInUse = services.some(service => service.client.id === clientId);
+    if (isClientInUse) {
+        alert('No se puede eliminar un cliente que tiene órdenes de servicio asociadas.');
+        return;
+    }
+    setClients(prev => prev.filter(c => c.id !== clientId));
+  }, [services]);
+  
   const updateInvoice = useCallback((invoiceId: string, updates: Partial<Invoice>) => {
     setInvoices(prev =>
       prev.map(inv =>
@@ -89,7 +123,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
 
   return (
-    <DataContext.Provider value={{ services, clients, inventory, invoices, users, updateService, addService, updateInventoryItem, addInventoryItem, addClient, updateInvoice, addInvoice }}>
+    <DataContext.Provider value={{ services, clients, inventory, invoices, users, companyInfo, revisionPrice, updateCompanyInfo, updateRevisionPrice, updateService, addService, updateInventoryItem, addInventoryItem, addClient, updateClient, deleteClient, updateInvoice, addInvoice }}>
       {children}
     </DataContext.Provider>
   );

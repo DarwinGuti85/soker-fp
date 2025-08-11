@@ -1,7 +1,7 @@
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ServiceOrder, UserRole, ServiceStatus, InventoryItem, Client } from '../types';
+import { ServiceOrder, UserRole, ServiceStatus, InventoryItem, Client, User } from '../types';
 import { STATUS_COLORS, STATUS_LABELS_ES, SERVICE_STATUSES } from '../constants';
 import { useAuth } from '../hooks/useAuth';
 import { useData } from '../hooks/useData';
@@ -21,11 +21,12 @@ const ServiceCard: React.FC<{ service: ServiceOrder; onDetailsClick: () => void 
       `}
       style={{ animationDelay: `${Math.random() * 0.2}s` }}
     >
-      <div className="flex justify-between items-start">
-        <h3 className="font-bold text-brand-text group-hover:text-brand-orange transition-colors duration-300 truncate pr-2">
-          {service.applianceName}
+      <div className="flex justify-between items-start gap-4">
+        <h3 className="font-bold text-brand-text group-hover:text-brand-orange transition-colors duration-300 flex items-baseline min-w-0">
+          <span className="font-mono text-xs text-brand-text-dark/80 mr-2 shrink-0">#{service.id}</span>
+          <span className="truncate">{service.applianceName}</span>
         </h3>
-        <span className={`px-2 py-0.5 text-xs font-semibold rounded-full ${STATUS_COLORS[service.status]} transition-opacity duration-300`}>
+        <span className={`px-2 py-0.5 text-xs font-semibold rounded-full ${STATUS_COLORS[service.status]} transition-opacity duration-300 shrink-0`}>
           {STATUS_LABELS_ES[service.status]}
         </span>
       </div>
@@ -34,7 +35,7 @@ const ServiceCard: React.FC<{ service: ServiceOrder; onDetailsClick: () => void 
         <p className="text-xs text-gray-500">{service.applianceType}</p>
       </div>
       <div className="text-xs text-brand-text-dark pt-2 border-t border-gray-700/50">
-        <p><strong>Técnico:</strong> {service.technician.firstName}</p>
+        <p><strong>Técnico:</strong> {service.technician ? `${service.technician.firstName} ${service.technician.lastName}`: 'Sin Asignar'}</p>
         <p><strong>Ingreso:</strong> {new Date(service.createdAt).toLocaleDateString('es-ES')}</p>
       </div>
     </button>
@@ -42,31 +43,33 @@ const ServiceCard: React.FC<{ service: ServiceOrder; onDetailsClick: () => void 
 };
 
 const DetailsModalContent: React.FC<{ serviceId: string, onClose: () => void }> = ({ serviceId, onClose }) => {
-    const { services, inventory, updateService, updateInventoryItem, invoices } = useData();
+    const { services, inventory, updateService, updateInventoryItem, invoices, users } = useData();
+    const { hasPermission } = useAuth();
     const navigate = useNavigate();
+    const technicians = users.filter(u => u.role === UserRole.TECHNICIAN);
     
-    // Get the latest service data from the global state on every render
     const currentService = services.find(s => s.id === serviceId);
 
-    // Local UI state for managing editing modes and input fields
     const [isEditingStatus, setIsEditingStatus] = useState(false);
     const [newStatus, setNewStatus] = useState(currentService?.status);
     const [isEditingNotes, setIsEditingNotes] = useState(false);
     const [newNotes, setNewNotes] = useState(currentService?.technicianNotes);
     const [isAddingPart, setIsAddingPart] = useState(false);
     const [partSearch, setPartSearch] = useState('');
+    const [isEditingTechnician, setIsEditingTechnician] = useState(false);
+    const [selectedTechnicianId, setSelectedTechnicianId] = useState(currentService?.technician?.id || '');
 
-    // Effect to sync local editing state if the underlying service data changes
+    const canEditService = hasPermission('services', 'edit');
+
     useEffect(() => {
         if (currentService) {
             setNewStatus(currentService.status);
             setNewNotes(currentService.technicianNotes);
+            setSelectedTechnicianId(currentService.technician?.id || '');
         }
     }, [currentService]);
 
     if (!currentService) {
-      // Handle case where service might not be found (e.g., during a data refresh)
-      // Closing the modal is a safe fallback
       useEffect(() => {
         onClose();
       }, [onClose]);
@@ -85,6 +88,12 @@ const DetailsModalContent: React.FC<{ serviceId: string, onClose: () => void }> 
             updateService(currentService.id, { technicianNotes: newNotes });
             setIsEditingNotes(false);
         }
+    };
+    
+    const handleSaveTechnician = () => {
+        const technicianToAssign = technicians.find(t => t.id === selectedTechnicianId);
+        updateService(currentService.id, { technician: technicianToAssign });
+        setIsEditingTechnician(false);
     };
 
     const handleAddPart = (part: InventoryItem) => {
@@ -140,7 +149,7 @@ const DetailsModalContent: React.FC<{ serviceId: string, onClose: () => void }> 
                         {!isEditingStatus ? (
                             <div className="flex items-center gap-2">
                                 <span className={`px-3 py-1 text-sm leading-5 font-semibold rounded-full ${STATUS_COLORS[currentService.status]}`}>{STATUS_LABELS_ES[currentService.status]}</span>
-                                <button onClick={() => setIsEditingStatus(true)} className="text-gray-400 hover:text-white p-1 rounded-full hover:bg-gray-700"><EditIcon className="h-4 w-4" /></button>
+                                {canEditService && <button onClick={() => setIsEditingStatus(true)} className="text-gray-400 hover:text-white p-1 rounded-full hover:bg-gray-700"><EditIcon className="h-4 w-4" /></button>}
                             </div>
                         ) : (
                             <div className="flex items-center gap-2">
@@ -169,7 +178,34 @@ const DetailsModalContent: React.FC<{ serviceId: string, onClose: () => void }> 
                              <h3 className="text-lg font-bold text-brand-orange border-b border-brand-orange/30 pb-2">Artefacto</h3>
                             <p><strong className="text-brand-text-dark">Tipo:</strong> {currentService.applianceName}</p>
                             <p><strong className="text-brand-text-dark">Marca/Modelo:</strong> {currentService.applianceType}</p>
-                            <p><strong className="text-brand-text-dark">Asignado a:</strong> {`${currentService.technician.firstName} ${currentService.technician.lastName}`}</p>
+                        </div>
+                    </div>
+
+                     {/* Technician Assignment */}
+                    <div className="space-y-2 pt-4 border-t border-gray-700/50">
+                        <div className="flex items-center gap-4">
+                           <h3 className="text-lg font-bold text-brand-orange">Técnico Asignado</h3>
+                           {!isEditingTechnician ? (
+                                <div className="flex items-center gap-2">
+                                    <p className="text-brand-text">
+                                        {currentService.technician ? `${currentService.technician.firstName} ${currentService.technician.lastName}` : 'Sin asignar'}
+                                    </p>
+                                    {canEditService && <button onClick={() => setIsEditingTechnician(true)} className="text-gray-400 hover:text-white p-1 rounded-full hover:bg-gray-700"><EditIcon className="h-4 w-4" /></button>}
+                                </div>
+                            ) : (
+                                <div className="flex items-center gap-2">
+                                    <select 
+                                        value={selectedTechnicianId} 
+                                        onChange={e => setSelectedTechnicianId(e.target.value)} 
+                                        className="bg-brand-bg-dark border border-gray-600 rounded-md py-1 px-2 text-sm text-brand-text focus:ring-brand-orange focus:border-brand-orange"
+                                    >
+                                        <option value="">-- Sin Asignar --</option>
+                                        {technicians.map(t => <option key={t.id} value={t.id}>{t.firstName} {t.lastName}</option>)}
+                                    </select>
+                                    <button onClick={handleSaveTechnician} className="bg-green-600 text-white px-3 py-1 rounded-md text-xs font-semibold hover:bg-green-500">Guardar</button>
+                                    <button onClick={() => setIsEditingTechnician(false)} className="bg-gray-600 text-white px-3 py-1 rounded-md text-xs font-semibold hover:bg-gray-500">Cancelar</button>
+                                </div>
+                            )}
                         </div>
                     </div>
                     
@@ -184,7 +220,9 @@ const DetailsModalContent: React.FC<{ serviceId: string, onClose: () => void }> 
                             <div className="flex items-center gap-2 mb-1">
                                 <h4 className="font-semibold text-brand-text">Notas del Técnico</h4>
                                 {!isEditingNotes ? (
-                                    <button onClick={() => setIsEditingNotes(true)} className="text-gray-400 hover:text-white p-1 rounded-full hover:bg-gray-700"><EditIcon className="h-4 w-4" /></button>
+                                    <>
+                                    {canEditService && <button onClick={() => setIsEditingNotes(true)} className="text-gray-400 hover:text-white p-1 rounded-full hover:bg-gray-700"><EditIcon className="h-4 w-4" /></button>}
+                                    </>
                                 ) : (
                                     <div className="flex items-center gap-2">
                                         <button onClick={handleSaveNotes} className="flex items-center gap-1 bg-green-600 text-white px-2 py-0.5 rounded-md text-xs font-semibold hover:bg-green-500"><SaveIcon className="h-3 w-3" /> Guardar</button>
@@ -204,7 +242,7 @@ const DetailsModalContent: React.FC<{ serviceId: string, onClose: () => void }> 
                     <div className="space-y-2">
                          <div className="flex items-center gap-4">
                              <h3 className="text-lg font-bold text-brand-orange border-b border-brand-orange/30 pb-2">Repuestos Utilizados</h3>
-                             <button onClick={() => setIsAddingPart(true)} className="flex items-center gap-1 bg-blue-600 text-white px-3 py-1 rounded-md font-semibold hover:bg-blue-500 text-xs transition-colors"><PlusCircleIcon className="h-4 w-4" />Añadir Repuesto</button>
+                             {canEditService && <button onClick={() => setIsAddingPart(true)} className="flex items-center gap-1 bg-blue-600 text-white px-3 py-1 rounded-md font-semibold hover:bg-blue-500 text-xs transition-colors"><PlusCircleIcon className="h-4 w-4" />Añadir Repuesto</button>}
                          </div>
                          {isAddingPart && (
                             <div className="p-3 bg-brand-bg-dark/50 rounded-lg space-y-2">
@@ -232,7 +270,13 @@ const DetailsModalContent: React.FC<{ serviceId: string, onClose: () => void }> 
                                          <tr key={part.id}>
                                              <td className="p-3">{part.name}</td><td className="p-3 font-mono">{part.sku}</td>
                                              <td className="p-3 text-right">{new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(part.price)}</td>
-                                             <td className="p-3 text-center"><button onClick={() => handleRemovePart(part)} className="text-red-500 hover:text-red-400 p-1"><TrashIcon className="h-4 w-4" /></button></td>
+                                             <td className="p-3 text-center">
+                                                {canEditService ? (
+                                                    <button onClick={() => handleRemovePart(part)} className="text-red-500 hover:text-red-400 p-1"><TrashIcon className="h-4 w-4" /></button>
+                                                ) : (
+                                                    <span className="text-gray-500">-</span>
+                                                )}
+                                             </td>
                                          </tr>
                                      )) : (<tr><td colSpan={4} className="p-4 text-center text-brand-text-dark italic">No se han añadido repuestos.</td></tr>)}
                                  </tbody>
@@ -243,7 +287,7 @@ const DetailsModalContent: React.FC<{ serviceId: string, onClose: () => void }> 
                 
                 {/* Footer */}
                 <div className="px-6 py-4 border-t border-gray-700 flex justify-end items-center space-x-3">
-                    {isCompleted && (existingInvoice ? <button disabled className="bg-gray-500 text-white px-6 py-2 rounded-md font-semibold cursor-not-allowed">Facturado</button> : <button onClick={handleBillService} className="bg-green-600 text-white px-6 py-2 rounded-md font-semibold hover:bg-green-500 transition-colors">Facturar</button>)}
+                    {isCompleted && hasPermission('billing', 'edit') && (existingInvoice ? <button disabled className="bg-gray-500 text-white px-6 py-2 rounded-md font-semibold cursor-not-allowed">Facturado</button> : <button onClick={handleBillService} className="bg-green-600 text-white px-6 py-2 rounded-md font-semibold hover:bg-green-500 transition-colors">Facturar</button>)}
                     <button type="button" onClick={onClose} className="bg-brand-orange text-white px-6 py-2 rounded-md font-semibold hover:bg-orange-600 transition-colors">Cerrar</button>
                 </div>
             </div>
@@ -251,44 +295,67 @@ const DetailsModalContent: React.FC<{ serviceId: string, onClose: () => void }> 
     );
 };
 
-const Services: React.FC = () => {
-  const { services, clients, invoices, addService, addClient } = useData();
-  const { users } = useAuth();
-  
-  const [isNewOrderModalOpen, setIsNewOrderModalOpen] = useState(false);
-  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
-  const [selectedServiceId, setSelectedServiceId] = useState<string | null>(null);
-  
-  const [activeFilter, setActiveFilter] = useState<ServiceStatus | 'ALL'>('ALL');
-  const [searchTerm, setSearchTerm] = useState('');
+const FilterButton: React.FC<{
+  status: ServiceStatus | 'ALL';
+  label: string;
+  isActive: boolean;
+  onClick: () => void;
+  count: number;
+}> = ({ status, label, isActive, onClick, count }) => {
+  const baseClasses = "px-4 py-2 rounded-full text-sm font-semibold transition-all duration-300 flex items-center gap-2";
+  const activeClasses = "bg-brand-orange text-white shadow-md";
+  const inactiveClasses = "bg-brand-bg-light text-brand-text-dark hover:bg-gray-700 hover:text-white";
 
-  const [isNewClientFormVisible, setIsNewClientFormVisible] = useState(false);
+  return (
+    <button onClick={onClick} className={`${baseClasses} ${isActive ? activeClasses : inactiveClasses}`}>
+      {label}
+      <span className={`px-2 py-0.5 rounded-full text-xs ${isActive ? 'bg-white/20' : 'bg-brand-bg-dark'}`}>
+        {count}
+      </span>
+    </button>
+  );
+};
 
-  const technicians = users.filter(u => u.role === UserRole.TECHNICIAN);
+const NewOrderModal: React.FC<{
+  isOpen: boolean;
+  onClose: () => void;
+}> = ({ isOpen, onClose }) => {
+  const { clients, addService, addClient } = useData();
 
-  const initialNewServiceState = { clientId: '', applianceName: '', applianceType: '', clientDescription: '', technicianId: technicians.length > 0 ? technicians[0].id : '' };
+  const initialNewServiceState = { clientId: '', applianceName: '', applianceType: '', clientDescription: '' };
   const [newServiceData, setNewServiceData] = useState(initialNewServiceState);
 
   const initialNewClientState: Omit<Client, 'id' | 'createdAt'> = { firstName: '', lastName: '', whatsapp: '', email: '', address: '' };
   const [newClientData, setNewClientData] = useState(initialNewClientState);
+  
+  const [isNewClientFormVisible, setIsNewClientFormVisible] = useState(false);
 
-  const filteredServices = useMemo(() => {
-    let filtered = services;
+  // State for client search combobox
+  const [clientQuery, setClientQuery] = useState('');
+  const [isClientListVisible, setIsClientListVisible] = useState(false);
+  const clientSearchRef = useRef<HTMLDivElement>(null);
 
-    if (activeFilter !== 'ALL') {
-      filtered = filtered.filter(s => s.status === activeFilter);
+  useEffect(() => {
+    // Reset all local state when the modal is closed
+    if (!isOpen) {
+      setNewServiceData(initialNewServiceState);
+      setNewClientData(initialNewClientState);
+      setIsNewClientFormVisible(false);
+      setClientQuery('');
+      setIsClientListVisible(false);
     }
+  }, [isOpen]);
 
-    if (searchTerm.trim() !== '') {
-      const lowercasedTerm = searchTerm.toLowerCase();
-      filtered = filtered.filter(s => 
-        s.applianceName.toLowerCase().includes(lowercasedTerm) ||
-        `${s.client.firstName} ${s.client.lastName}`.toLowerCase().includes(lowercasedTerm) ||
-        s.id.toLowerCase().includes(lowercasedTerm)
-      );
-    }
-    return filtered.sort((a,b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-  }, [services, activeFilter, searchTerm]);
+  useEffect(() => {
+    // Close dropdown when clicking outside of it
+    const handleClickOutside = (event: MouseEvent) => {
+        if (clientSearchRef.current && !clientSearchRef.current.contains(event.target as Node)) {
+            setIsClientListVisible(false);
+        }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const handleAddNewClient = () => {
     if (!newClientData.firstName || !newClientData.lastName || !newClientData.whatsapp) {
@@ -301,93 +368,100 @@ const Services: React.FC = () => {
     setIsNewClientFormVisible(false);
   };
   
-  const handleClientSelection = (clientId: string) => {
-    if (clientId === 'add-new') {
-      setIsNewClientFormVisible(true);
-       setNewServiceData(prev => ({ ...prev, clientId: '' }));
-    } else {
-      setIsNewClientFormVisible(false);
-       setNewServiceData(prev => ({ ...prev, clientId }));
-    }
-  }
-
   const handleCreateService = (e: React.FormEvent) => {
     e.preventDefault();
     const client = clients.find(c => c.id === newServiceData.clientId);
-    const technician = users.find(u => u.id === newServiceData.technicianId);
 
-    if (!client || !technician || !newServiceData.applianceName || !newServiceData.clientDescription) {
-      alert('Por favor complete todos los campos requeridos.');
+    if (!client || !newServiceData.applianceName || !newServiceData.clientDescription) {
+      alert('Por favor complete todos los campos requeridos, incluyendo la selección de un cliente.');
       return;
     }
     
     addService({
         client,
-        technician,
         applianceName: newServiceData.applianceName,
         applianceType: newServiceData.applianceType,
         clientDescription: newServiceData.clientDescription,
         technicianNotes: 'Pendiente de revisión inicial.',
         status: ServiceStatus.PENDING,
     });
-
-    setNewServiceData(initialNewServiceState);
-    setIsNewOrderModalOpen(false);
+    onClose();
   };
 
-  const handleShowDetails = (service: ServiceOrder) => {
-    setSelectedServiceId(service.id);
-    setIsDetailsModalOpen(true);
-  };
-  
-  const handleCloseDetails = () => {
-    setIsDetailsModalOpen(false);
-    setSelectedServiceId(null);
-  }
+  const filteredClients = useMemo(() => {
+      if (!clientQuery) return clients;
+      const lowerQuery = clientQuery.toLowerCase();
+      return clients.filter(c => 
+          `${c.firstName} ${c.lastName}`.toLowerCase().includes(lowerQuery) ||
+          c.whatsapp.includes(lowerQuery)
+      );
+  }, [clients, clientQuery]);
 
-  const FilterButton: React.FC<{status: ServiceStatus | 'ALL', label: string}> = ({ status, label }) => {
-    const isActive = activeFilter === status;
-    const count = status === 'ALL' 
-      ? services.length 
-      : services.filter(s => s.status === status).length;
-      
-    const baseClasses = "px-4 py-2 rounded-full text-sm font-semibold transition-all duration-300 flex items-center gap-2";
-    const activeClasses = "bg-brand-orange text-white shadow-md";
-    const inactiveClasses = "bg-brand-bg-light text-brand-text-dark hover:bg-gray-700 hover:text-white";
+  const selectedClient = clients.find(c => c.id === newServiceData.clientId);
 
-    return (
-      <button onClick={() => setActiveFilter(status)} className={`${baseClasses} ${isActive ? activeClasses : inactiveClasses}`}>
-        {label}
-        <span className={`px-2 py-0.5 rounded-full text-xs ${isActive ? 'bg-white/20' : 'bg-brand-bg-dark'}`}>
-          {count}
-        </span>
-      </button>
-    )
-  }
-  
-  const NewOrderModal = () => (
+  if (!isOpen) return null;
+
+  return (
     <div className="fixed inset-0 bg-black/70 z-50 flex justify-center items-center p-4" aria-modal="true" role="dialog">
-      <div className="bg-brand-bg-light rounded-lg shadow-2xl border border-gray-700/50 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+      <div className="bg-brand-bg-light rounded-lg shadow-2xl border border-gray-700/50 w-full max-w-2xl max-h-[90vh] flex flex-col">
         <div className="sticky top-0 bg-brand-bg-light z-10 px-6 py-4 border-b border-gray-700 flex justify-between items-center">
           <h2 className="text-2xl font-bold text-white">Nueva Orden de Servicio</h2>
-          <button onClick={() => setIsNewOrderModalOpen(false)} className="text-gray-400 hover:text-white">
+          <button onClick={onClose} className="text-gray-400 hover:text-white">
             <CloseIcon className="h-6 w-6" />
           </button>
         </div>
-        <form onSubmit={handleCreateService} className="p-6 space-y-6">
-          <div className="space-y-2">
-            <label htmlFor="client" className="block text-sm font-medium text-brand-text-dark">Cliente</label>
-            <select
-              id="client"
-              value={isNewClientFormVisible ? 'add-new' : newServiceData.clientId}
-              onChange={(e) => handleClientSelection(e.target.value)}
-              className="w-full bg-brand-bg-dark border border-gray-600 text-brand-text rounded-md p-2 focus:ring-brand-orange focus:border-brand-orange"
-              required
-            >
-              <option value="" disabled>Seleccione un cliente</option>
-              {clients.map(c => <option key={c.id} value={c.id}>{`${c.firstName} ${c.lastName}`} - {c.whatsapp}</option>)}
-              <option value="add-new">Añadir nuevo cliente...</option>
-            </select>
+        <form onSubmit={handleCreateService} className="p-6 space-y-6 overflow-y-auto">
+          <div className="space-y-2 relative" ref={clientSearchRef}>
+            <label htmlFor="client-search" className="block text-sm font-medium text-brand-text-dark">Cliente</label>
+            <input
+                id="client-search"
+                type="text"
+                placeholder="Buscar cliente por nombre o WhatsApp..."
+                value={selectedClient ? `${selectedClient.firstName} ${selectedClient.lastName}` : clientQuery}
+                onChange={(e) => {
+                    setClientQuery(e.target.value);
+                    setNewServiceData(prev => ({...prev, clientId: ''})); // Clear selection on type
+                    setIsClientListVisible(true);
+                }}
+                onFocus={() => setIsClientListVisible(true)}
+                className="w-full bg-brand-bg-dark border border-gray-600 text-brand-text rounded-md p-2 focus:ring-brand-orange focus:border-brand-orange"
+                autoComplete="off"
+                required={!newServiceData.clientId}
+            />
+            {isClientListVisible && (
+                 <div className="absolute z-20 w-full mt-1 bg-brand-bg-dark border border-gray-600 rounded-md shadow-lg max-h-60 overflow-y-auto">
+                    <ul>
+                        {filteredClients.map(c => (
+                            <li
+                                key={c.id}
+                                onMouseDown={() => {
+                                    setNewServiceData(prev => ({ ...prev, clientId: c.id }));
+                                    setClientQuery('');
+                                    setIsClientListVisible(false);
+                                    setIsNewClientFormVisible(false);
+                                }}
+                                className="px-4 py-2 text-brand-text hover:bg-brand-orange/20 cursor-pointer"
+                            >
+                                {c.firstName} {c.lastName} - {c.whatsapp}
+                            </li>
+                        ))}
+                        {filteredClients.length === 0 && clientQuery && (
+                            <li className="px-4 py-2 text-brand-text-dark italic">No se encontraron clientes.</li>
+                        )}
+                        <li
+                            onMouseDown={() => {
+                                setIsNewClientFormVisible(true);
+                                setIsClientListVisible(false);
+                                setNewServiceData(prev => ({...prev, clientId: ''}));
+                                setClientQuery('');
+                            }}
+                            className="px-4 py-2 text-brand-orange font-semibold hover:bg-brand-orange/20 cursor-pointer border-t border-gray-600"
+                        >
+                            Añadir nuevo cliente...
+                        </li>
+                    </ul>
+                </div>
+            )}
           </div>
 
           {isNewClientFormVisible && (
@@ -418,25 +492,64 @@ const Services: React.FC = () => {
             <label htmlFor="clientDescription" className="block text-sm font-medium text-brand-text-dark">Descripción del Problema (Cliente)</label>
             <textarea id="clientDescription" value={newServiceData.clientDescription} onChange={e => setNewServiceData({...newServiceData, clientDescription: e.target.value})} rows={4} className="w-full bg-brand-bg-dark border border-gray-600 rounded-md p-2 focus:ring-brand-orange focus:border-brand-orange" required></textarea>
           </div>
-          <div className="space-y-2">
-            <label htmlFor="technician" className="block text-sm font-medium text-brand-text-dark">Asignar Técnico</label>
-            <select id="technician" value={newServiceData.technicianId} onChange={e => setNewServiceData({...newServiceData, technicianId: e.target.value})} className="w-full bg-brand-bg-dark border border-gray-600 text-brand-text rounded-md p-2 focus:ring-brand-orange focus:border-brand-orange" required>
-              {technicians.map(t => <option key={t.id} value={t.id}>{t.firstName} {t.lastName}</option>)}
-            </select>
-          </div>
-
+          
           <div className="flex justify-end space-x-4 pt-4">
-            <button type="button" onClick={() => setIsNewOrderModalOpen(false)} className="bg-gray-600 text-white px-6 py-2 rounded-md font-semibold hover:bg-gray-500 transition-colors">Cancelar</button>
+            <button type="button" onClick={onClose} className="bg-gray-600 text-white px-6 py-2 rounded-md font-semibold hover:bg-gray-500 transition-colors">Cancelar</button>
             <button type="submit" className="bg-brand-orange text-white px-6 py-2 rounded-md font-semibold hover:bg-orange-600 transition-colors">Crear Orden</button>
           </div>
         </form>
       </div>
     </div>
   );
+};
+
+const Services: React.FC = () => {
+  const { services } = useData();
+  const { hasPermission } = useAuth();
+  
+  const [isNewOrderModalOpen, setIsNewOrderModalOpen] = useState(false);
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+  const [selectedServiceId, setSelectedServiceId] = useState<string | null>(null);
+  
+  const [activeFilter, setActiveFilter] = useState<ServiceStatus | 'ALL'>('ALL');
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const filteredServices = useMemo(() => {
+    let filtered = services;
+
+    if (activeFilter !== 'ALL') {
+      filtered = filtered.filter(s => s.status === activeFilter);
+    }
+
+    if (searchTerm.trim() !== '') {
+      const lowercasedTerm = searchTerm.toLowerCase();
+      filtered = filtered.filter(s => 
+        s.applianceName.toLowerCase().includes(lowercasedTerm) ||
+        `${s.client.firstName} ${s.client.lastName}`.toLowerCase().includes(lowercasedTerm) ||
+        s.id.toLowerCase().includes(lowercasedTerm)
+      );
+    }
+    return filtered.sort((a,b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }, [services, activeFilter, searchTerm]);
+
+  const handleShowDetails = (service: ServiceOrder) => {
+    setSelectedServiceId(service.id);
+    setIsDetailsModalOpen(true);
+  };
+  
+  const handleCloseDetails = () => {
+    setIsDetailsModalOpen(false);
+    setSelectedServiceId(null);
+  }
+
+  const getStatusCount = (status: ServiceStatus | 'ALL') => {
+    if (status === 'ALL') return services.length;
+    return services.filter(s => s.status === status).length;
+  }
 
   return (
     <div className="space-y-6">
-      {isNewOrderModalOpen && <NewOrderModal />}
+      {hasPermission('services', 'edit') && <NewOrderModal isOpen={isNewOrderModalOpen} onClose={() => setIsNewOrderModalOpen(false)} />}
       {isDetailsModalOpen && selectedServiceId && <DetailsModalContent serviceId={selectedServiceId} onClose={handleCloseDetails} />}
 
       <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
@@ -444,20 +557,35 @@ const Services: React.FC = () => {
           <h1 className="text-3xl font-bold text-white">Órdenes de Servicio</h1>
           <p className="text-brand-text-dark mt-1">Filtra y gestiona las órdenes de trabajo.</p>
         </div>
+        {hasPermission('services', 'edit') && (
         <button 
           onClick={() => setIsNewOrderModalOpen(true)}
           className="bg-brand-orange text-white px-4 py-2 rounded-md font-semibold hover:bg-orange-600 transition-colors self-start md:self-auto"
         >
           Nueva Orden de Servicio
         </button>
+        )}
       </div>
       
       {/* Filters */}
       <div className="bg-brand-bg-dark/50 p-3 rounded-xl backdrop-blur-sm border border-gray-800 space-y-4">
         <div className="flex items-center gap-2 overflow-x-auto pb-2">
-            <FilterButton status="ALL" label="Todos" />
+            <FilterButton 
+              status="ALL" 
+              label="Todos"
+              isActive={activeFilter === 'ALL'}
+              onClick={() => setActiveFilter('ALL')}
+              count={getStatusCount('ALL')}
+            />
             {SERVICE_STATUSES.map(status => (
-                <FilterButton key={status} status={status} label={STATUS_LABELS_ES[status]} />
+                <FilterButton 
+                  key={status} 
+                  status={status} 
+                  label={STATUS_LABELS_ES[status]}
+                  isActive={activeFilter === status}
+                  onClick={() => setActiveFilter(status)}
+                  count={getStatusCount(status)}
+                />
             ))}
         </div>
         <div>

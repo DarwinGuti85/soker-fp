@@ -1,6 +1,27 @@
 import React, { createContext, useState, useContext, ReactNode, useCallback } from 'react';
-import { User, UserRole } from '../types';
+import { User, UserRole, Permissions, Module, PermissionSet } from '../types';
 import { MOCK_USERS } from '../data/mockData';
+
+const initialPermissions: Permissions = {
+  [UserRole.CASHIER]: {
+    dashboard: { view: true, edit: false, delete: false },
+    services: { view: true, edit: true, delete: false },
+    clients: { view: true, edit: true, delete: false },
+    billing: { view: true, edit: true, delete: false },
+    inventory: { view: true, edit: false, delete: false },
+    settings: { view: false, edit: false, delete: false },
+    users: { view: false, edit: false, delete: false },
+  },
+  [UserRole.TECHNICIAN]: {
+    dashboard: { view: true, edit: false, delete: false },
+    services: { view: true, edit: true, delete: false },
+    clients: { view: true, edit: false, delete: false },
+    billing: { view: false, edit: false, delete: false },
+    inventory: { view: true, edit: true, delete: false },
+    settings: { view: false, edit: false, delete: false },
+    users: { view: false, edit: false, delete: false },
+  },
+};
 
 interface AuthContextType {
   user: User | null;
@@ -10,6 +31,9 @@ interface AuthContextType {
   addUser: (user: Omit<User, 'id'>) => void;
   updateUser: (user: User) => void;
   deleteUser: (userId: string) => void;
+  permissions: Permissions;
+  updatePermissions: (role: Exclude<UserRole, UserRole.ADMIN>, module: Module, permission: keyof PermissionSet, value: boolean) => void;
+  hasPermission: (module: Module, permission: keyof PermissionSet) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -17,6 +41,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [users, setUsers] = useState<User[]>(MOCK_USERS);
+  const [permissions, setPermissions] = useState<Permissions>(initialPermissions);
 
   const login = useCallback(async (emailOrUsername: string, password: string): Promise<User | null> => {
     const normalizedInput = emailOrUsername.toLowerCase().trim();
@@ -42,7 +67,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const userToAdd: User = { 
       ...newUser, 
       id: `user-${Date.now()}`,
-      // In a real app, hash the password here. For this mock, we just add it for creation logic.
       password: newUser.password 
     };
     setUsers(prev => [...prev, userToAdd]);
@@ -52,13 +76,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setUsers(prev => prev.map(u => {
         if (u.id === updatedUser.id) {
             const finalUpdatedUser = { ...u, ...updatedUser };
-
-            // If a new password wasn't provided in the form (it comes as empty string),
-            // keep the old password. Otherwise, update it.
             if (!updatedUser.password || updatedUser.password.trim() === '') {
                 finalUpdatedUser.password = u.password;
             }
-            
             return finalUpdatedUser;
         }
         return u;
@@ -69,9 +89,34 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setUsers(prev => prev.filter(u => u.id !== userId));
   }, []);
 
+  const updatePermissions = useCallback((
+    role: Exclude<UserRole, UserRole.ADMIN>, 
+    module: Module, 
+    permission: keyof PermissionSet, 
+    value: boolean
+  ) => {
+    setPermissions(prev => ({
+      ...prev,
+      [role]: {
+        ...prev[role],
+        [module]: {
+          ...prev[role][module],
+          [permission]: value,
+        },
+      },
+    }));
+  }, []);
+
+  const hasPermission = useCallback((module: Module, permission: keyof PermissionSet): boolean => {
+      if (!currentUser) return false;
+      if (currentUser.role === UserRole.ADMIN) return true;
+      
+      return permissions[currentUser.role]?.[module]?.[permission] ?? false;
+  }, [permissions, currentUser]);
+
 
   return (
-    <AuthContext.Provider value={{ user: currentUser, users, login, logout, addUser, updateUser, deleteUser }}>
+    <AuthContext.Provider value={{ user: currentUser, users, login, logout, addUser, updateUser, deleteUser, permissions, updatePermissions, hasPermission }}>
       {children}
     </AuthContext.Provider>
   );

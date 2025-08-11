@@ -2,8 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { UserRole } from '../types';
-import { LogoIcon, ChevronDownIcon, DashboardIcon, ServicesIcon, ClientsIcon, InventoryIcon, UsersIcon, LogoutIcon, MenuIcon, CloseIcon, BillingIcon } from './ui/icons';
+import { User, UserRole } from '../types';
+import { LogoIcon, ChevronDownIcon, DashboardIcon, ServicesIcon, ClientsIcon, InventoryIcon, UsersIcon, LogoutIcon, MenuIcon, CloseIcon, BillingIcon, SettingsIcon } from './ui/icons';
 
 const NavItem: React.FC<{ to: string, children: React.ReactNode, icon: React.ReactNode, isMobile?: boolean }> = ({ to, children, icon, isMobile = false }) => {
   const commonClasses = "flex items-center space-x-3 px-3 py-2 rounded-md font-medium transition-colors";
@@ -22,8 +22,22 @@ const NavItem: React.FC<{ to: string, children: React.ReactNode, icon: React.Rea
   );
 };
 
+const NavLinks: React.FC<{ isMobile?: boolean }> = ({ isMobile }) => {
+  const { hasPermission } = useAuth();
+
+  return (
+    <>
+      {hasPermission('dashboard', 'view') && <NavItem to="/dashboard" icon={<DashboardIcon className={isMobile ? "h-6 w-6" : "h-5 w-5"}/>} isMobile={isMobile}>Panel</NavItem>}
+      {hasPermission('services', 'view') && <NavItem to="/services" icon={<ServicesIcon className={isMobile ? "h-6 w-6" : "h-5 w-5"}/>} isMobile={isMobile}>Servicios</NavItem>}
+      {hasPermission('clients', 'view') && <NavItem to="/clients" icon={<ClientsIcon className={isMobile ? "h-6 w-6" : "h-5 w-5"}/>} isMobile={isMobile}>Clientes</NavItem>}
+      {hasPermission('billing', 'view') && <NavItem to="/billing" icon={<BillingIcon className={isMobile ? "h-6 w-6" : "h-5 w-5"}/>} isMobile={isMobile}>Facturación</NavItem>}
+      {hasPermission('inventory', 'view') && <NavItem to="/inventory" icon={<InventoryIcon className={isMobile ? "h-6 w-6" : "h-5 w-5"}/>} isMobile={isMobile}>Inventario</NavItem>}
+    </>
+  );
+};
+
 const Header: React.FC = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, hasPermission } = useAuth();
   const [isDropdownOpen, setDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
@@ -36,19 +50,6 @@ const Header: React.FC = () => {
   const handleLogout = () => {
     logout();
   };
-  
-  const hasAccess = (roles: UserRole[]) => !user || roles.includes(user.role);
-
-  const NavLinks: React.FC<{ isMobile?: boolean }> = ({ isMobile }) => (
-    <>
-      <NavItem to="/dashboard" icon={<DashboardIcon className={isMobile ? "h-6 w-6" : "h-5 w-5"}/>} isMobile={isMobile}>Panel</NavItem>
-      {hasAccess([UserRole.ADMIN, UserRole.CASHIER, UserRole.TECHNICIAN]) && <NavItem to="/services" icon={<ServicesIcon className={isMobile ? "h-6 w-6" : "h-5 w-5"}/>} isMobile={isMobile}>Servicios</NavItem>}
-      {hasAccess([UserRole.ADMIN, UserRole.CASHIER]) && <NavItem to="/clients" icon={<ClientsIcon className={isMobile ? "h-6 w-6" : "h-5 w-5"}/>} isMobile={isMobile}>Clientes</NavItem>}
-      {hasAccess([UserRole.ADMIN, UserRole.CASHIER]) && <NavItem to="/billing" icon={<BillingIcon className={isMobile ? "h-6 w-6" : "h-5 w-5"}/>} isMobile={isMobile}>Facturación</NavItem>}
-      {hasAccess([UserRole.ADMIN, UserRole.TECHNICIAN]) && <NavItem to="/inventory" icon={<InventoryIcon className={isMobile ? "h-6 w-6" : "h-5 w-5"}/>} isMobile={isMobile}>Inventario</NavItem>}
-      {hasAccess([UserRole.ADMIN]) && <NavItem to="/users" icon={<UsersIcon className={isMobile ? "h-6 w-6" : "h-5 w-5"}/>} isMobile={isMobile}>Usuarios</NavItem>}
-    </>
-  );
 
   return (
     <>
@@ -83,6 +84,15 @@ const Header: React.FC = () => {
                       <LogoutIcon className="h-4 w-4" />
                       <span>Cerrar Sesión</span>
                     </button>
+                    {hasPermission('settings', 'view') && (
+                      <NavLink
+                          to="/settings"
+                          className="w-full text-left px-4 py-2 text-sm text-brand-text hover:bg-brand-orange/20 flex items-center space-x-2"
+                      >
+                          <SettingsIcon className="h-4 w-4" />
+                          <span>Ajustes</span>
+                      </NavLink>
+                    )}
                   </div>
                 )}
               </div>

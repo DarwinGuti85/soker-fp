@@ -1,4 +1,4 @@
-import { UserRole, ServiceStatus, InvoiceStatus } from './types';
+import { UserRole, ServiceStatus, InvoiceStatus, Module } from './types';
 
 export const USER_ROLES = Object.values(UserRole);
 export const SERVICE_STATUSES = Object.values(ServiceStatus);
@@ -40,7 +40,24 @@ export const INVOICE_STATUS_COLORS: { [key in InvoiceStatus]: string } = {
   [InvoiceStatus.UNPAID]: 'bg-yellow-500/20 text-yellow-400',
 };
 
+export const INVOICE_STATUS_HEX_COLORS: { [key in InvoiceStatus]: string } = {
+  [InvoiceStatus.PAID]: '#22c55e',
+  [InvoiceStatus.UNPAID]: '#f59e0b',
+};
+
 export const INVOICE_STATUS_LABELS_ES: { [key in InvoiceStatus]: string } = {
   [InvoiceStatus.PAID]: 'Pagada',
   [InvoiceStatus.UNPAID]: 'Pendiente',
+};
+
+export const MODULES: Module[] = ['dashboard', 'services', 'clients', 'billing', 'inventory', 'settings', 'users'];
+
+export const MODULE_LABELS_ES: Record<Module, string> = {
+    dashboard: 'Panel Principal',
+    services: 'Servicios',
+    clients: 'Clientes',
+    billing: 'Facturación',
+    inventory: 'Inventario',
+    settings: 'Ajustes',
+    users: 'Usuarios'
 };

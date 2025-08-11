@@ -17,11 +17,12 @@ export interface User {
 export interface Client {
   id: string;
   firstName: string;
-  lastName: string;
+  lastName:string;
   whatsapp: string;
   email: string;
   address: string;
   createdAt: string;
+  taxId?: string;
 }
 
 export enum ServiceStatus {
@@ -48,7 +49,7 @@ export interface ServiceOrder {
   clientDescription: string;
   technicianNotes: string;
   status: ServiceStatus;
-  technician: User;
+  technician?: User;
   createdAt: string;
   updatedAt: string;
   partsUsed?: InventoryItem[];
@@ -63,6 +64,35 @@ export interface Invoice {
   id: string;
   serviceOrder: ServiceOrder;
   issueDate: string;
-  totalAmount: number;
   status: InvoiceStatus;
+  // Detailed breakdown
+  revisionPrice: number;
+  laborCost: number;
+  partsTotal: number;
+  subtotal: number;
+  taxAmount: number;
+  totalAmount: number;
 }
+
+export interface CompanyInfo {
+  name: string;
+  taxId: string;
+  address: string;
+  email: string;
+  phone: string;
+}
+
+// --- PERMISSIONS ---
+export type Module = 'dashboard' | 'services' | 'clients' | 'billing' | 'inventory' | 'settings' | 'users';
+
+export interface PermissionSet {
+  view: boolean;
+  edit: boolean;
+  delete: boolean;
+}
+
+export type RolePermissions = Record<Module, PermissionSet>;
+
+export type Permissions = {
+  [key in Exclude<UserRole, UserRole.ADMIN>]: RolePermissions;
+};

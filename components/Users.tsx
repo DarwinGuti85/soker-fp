@@ -1,47 +1,22 @@
+
 import React, { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { User, UserRole } from '../types';
 import { ROLE_LABELS_ES, USER_ROLES } from '../constants';
 import { CloseIcon, EditIcon, TrashIcon } from './ui/icons';
 
-const Users: React.FC = () => {
-  const { user: currentUser, users, addUser, updateUser, deleteUser } = useAuth();
-  
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  
+const UserModal: React.FC<{
+  isOpen: boolean;
+  onClose: () => void;
+  onSave: (userData: Omit<User, 'id'>, id?: string) => void;
+  selectedUser: User | null;
+}> = ({ isOpen, onClose, onSave, selectedUser }) => {
   const initialUserState: Omit<User, 'id'> = { username: '', firstName: '', lastName: '', email: '', role: UserRole.CASHIER, password: '' };
-  const [userFormData, setUserFormData] = useState(initialUserState);
+  const [userFormData, setUserFormData] = useState(selectedUser ? { ...selectedUser, password: '' } : initialUserState);
 
-  const roleColors: Record<UserRole, string> = {
-    [UserRole.ADMIN]: 'bg-red-500/20 text-red-400',
-    [UserRole.CASHIER]: 'bg-blue-500/20 text-blue-400',
-    [UserRole.TECHNICIAN]: 'bg-green-500/20 text-green-400',
-  };
-
-  const openAddModal = () => {
-    setSelectedUser(null);
-    setUserFormData(initialUserState);
-    setIsModalOpen(true);
-  };
-
-  const openEditModal = (user: User) => {
-    setSelectedUser(user);
-    setUserFormData({ ...user, password: '' });
-    setIsModalOpen(true);
-  };
-
-  const openDeleteModal = (user: User) => {
-    setSelectedUser(user);
-    setIsDeleteModalOpen(true);
-  };
-  
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setIsDeleteModalOpen(false);
-    setSelectedUser(null);
-  };
+  React.useEffect(() => {
+    setUserFormData(selectedUser ? { ...selectedUser, password: '' } : initialUserState);
+  }, [selectedUser, isOpen]);
   
   const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -55,37 +30,21 @@ const Users: React.FC = () => {
       return;
     }
     
-    if (selectedUser) { // Editing
-      const userToUpdate: User = { 
-        ...selectedUser, 
-        ...userFormData 
-      };
-      // For this mock app, password update is not handled post-creation
-      // A real app would hash userFormData.password if it's not empty.
-      updateUser(userToUpdate);
-    } else { // Adding
-       if (!userFormData.password || userFormData.password.length < 4) {
-        alert("La contraseña es requerida y debe tener al menos 4 caracteres.");
-        return;
-      }
-      addUser(userFormData);
+    if (!selectedUser && (!userFormData.password || userFormData.password.length < 4)) {
+      alert("La contraseña es requerida y debe tener al menos 4 caracteres.");
+      return;
     }
-    closeModal();
+    onSave(userFormData, selectedUser?.id);
   };
   
-  const handleDelete = () => {
-    if (selectedUser) {
-      deleteUser(selectedUser.id);
-      closeModal();
-    }
-  };
+  if(!isOpen) return null;
 
-  const UserModal = () => (
+  return (
     <div className="fixed inset-0 bg-black/70 z-50 flex justify-center items-center p-4">
       <div className="bg-brand-bg-light rounded-lg shadow-2xl border border-gray-700/50 w-full max-w-lg">
         <div className="px-6 py-4 border-b border-gray-700 flex justify-between items-center">
           <h2 className="text-2xl font-bold text-white">{selectedUser ? 'Editar Usuario' : 'Añadir Nuevo Usuario'}</h2>
-          <button onClick={closeModal} className="text-gray-400 hover:text-white"><CloseIcon className="h-6 w-6" /></button>
+          <button onClick={onClose} className="text-gray-400 hover:text-white"><CloseIcon className="h-6 w-6" /></button>
         </div>
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -119,36 +78,111 @@ const Users: React.FC = () => {
             <input type="password" id="password" name="password" value={userFormData.password || ''} onChange={handleFormChange} className="mt-1 w-full bg-brand-bg-dark border border-gray-600 rounded-md p-2 focus:ring-brand-orange focus:border-brand-orange" required={!selectedUser} />
           </div>
           <div className="flex justify-end space-x-4 pt-4">
-            <button type="button" onClick={closeModal} className="bg-gray-600 text-white px-6 py-2 rounded-md font-semibold hover:bg-gray-500 transition-colors">Cancelar</button>
+            <button type="button" onClick={onClose} className="bg-gray-600 text-white px-6 py-2 rounded-md font-semibold hover:bg-gray-500 transition-colors">Cancelar</button>
             <button type="submit" className="bg-brand-orange text-white px-6 py-2 rounded-md font-semibold hover:bg-orange-600 transition-colors">Guardar</button>
           </div>
         </form>
       </div>
     </div>
   );
+};
 
-  const DeleteConfirmationModal = () => (
-     <div className="fixed inset-0 bg-black/70 z-50 flex justify-center items-center p-4">
+const DeleteConfirmationModal: React.FC<{
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+  user: User | null;
+}> = ({ isOpen, onClose, onConfirm, user }) => {
+  if (!isOpen || !user) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black/70 z-50 flex justify-center items-center p-4">
       <div className="bg-brand-bg-light rounded-lg shadow-2xl border border-gray-700/50 w-full max-w-md">
-         <div className="p-6 text-center">
-            <TrashIcon className="h-12 w-12 mx-auto text-red-500" />
-            <h3 className="mt-4 text-xl font-bold text-white">¿Estás seguro?</h3>
-            <p className="mt-2 text-sm text-brand-text-dark">
-              Estás a punto de eliminar al usuario <span className="font-bold text-brand-text">{selectedUser?.firstName} {selectedUser?.lastName}</span>. Esta acción no se puede deshacer.
-            </p>
-            <div className="mt-6 flex justify-center space-x-4">
-                <button onClick={closeModal} type="button" className="bg-gray-600 text-white px-6 py-2 rounded-md font-semibold hover:bg-gray-500 transition-colors">Cancelar</button>
-                <button onClick={handleDelete} type="button" className="bg-red-600 text-white px-6 py-2 rounded-md font-semibold hover:bg-red-500 transition-colors">Eliminar</button>
-            </div>
-         </div>
+        <div className="p-6 text-center">
+          <TrashIcon className="h-12 w-12 mx-auto text-red-500" />
+          <h3 className="mt-4 text-xl font-bold text-white">¿Estás seguro?</h3>
+          <p className="mt-2 text-sm text-brand-text-dark">
+            Estás a punto de eliminar al usuario <span className="font-bold text-brand-text">{user.firstName} {user.lastName}</span>. Esta acción no se puede deshacer.
+          </p>
+          <div className="mt-6 flex justify-center space-x-4">
+            <button onClick={onClose} type="button" className="bg-gray-600 text-white px-6 py-2 rounded-md font-semibold hover:bg-gray-500 transition-colors">Cancelar</button>
+            <button onClick={onConfirm} type="button" className="bg-red-600 text-white px-6 py-2 rounded-md font-semibold hover:bg-red-500 transition-colors">Eliminar</button>
+          </div>
+        </div>
       </div>
     </div>
   );
+};
+
+
+const Users: React.FC = () => {
+  const { user: currentUser, users, addUser, updateUser, deleteUser } = useAuth();
+  
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+
+  const roleColors: Record<UserRole, string> = {
+    [UserRole.ADMIN]: 'bg-red-500/20 text-red-400',
+    [UserRole.CASHIER]: 'bg-blue-500/20 text-blue-400',
+    [UserRole.TECHNICIAN]: 'bg-green-500/20 text-green-400',
+  };
+
+  const openAddModal = () => {
+    setSelectedUser(null);
+    setIsModalOpen(true);
+  };
+
+  const openEditModal = (user: User) => {
+    setSelectedUser(user);
+    setIsModalOpen(true);
+  };
+
+  const openDeleteModal = (user: User) => {
+    setSelectedUser(user);
+    setIsDeleteModalOpen(true);
+  };
+  
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setIsDeleteModalOpen(false);
+    setSelectedUser(null);
+  };
+  
+  const handleSaveUser = (userData: Omit<User, 'id'>, id?: string) => {
+    if (id) {
+      const userToUpdate: User = { 
+        id, 
+        ...userData 
+      };
+      updateUser(userToUpdate);
+    } else {
+      addUser(userData);
+    }
+    closeModal();
+  };
+  
+  const handleDelete = () => {
+    if (selectedUser) {
+      deleteUser(selectedUser.id);
+      closeModal();
+    }
+  };
 
   return (
     <div className="space-y-6">
-      {isModalOpen && <UserModal />}
-      {isDeleteModalOpen && <DeleteConfirmationModal />}
+      <UserModal 
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        onSave={handleSaveUser}
+        selectedUser={selectedUser}
+      />
+      <DeleteConfirmationModal
+        isOpen={isDeleteModalOpen}
+        onClose={closeModal}
+        onConfirm={handleDelete}
+        user={selectedUser}
+      />
 
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold text-white">Gestión de Usuarios</h1>
