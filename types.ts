@@ -53,6 +53,7 @@ export interface ServiceOrder {
   createdAt: string;
   updatedAt: string;
   partsUsed?: InventoryItem[];
+  lastNotificationSent?: string;
 }
 
 export enum InvoiceStatus {
@@ -83,7 +84,7 @@ export interface CompanyInfo {
 }
 
 // --- PERMISSIONS ---
-export type Module = 'dashboard' | 'services' | 'clients' | 'billing' | 'inventory' | 'settings' | 'users';
+export type Module = 'dashboard' | 'services' | 'clients' | 'billing' | 'inventory' | 'settings' | 'users' | 'ai';
 
 export interface PermissionSet {
   view: boolean;

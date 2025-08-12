@@ -50,7 +50,7 @@ export const INVOICE_STATUS_LABELS_ES: { [key in InvoiceStatus]: string } = {
   [InvoiceStatus.UNPAID]: 'Pendiente',
 };
 
-export const MODULES: Module[] = ['dashboard', 'services', 'clients', 'billing', 'inventory', 'settings', 'users'];
+export const MODULES: Module[] = ['dashboard', 'services', 'clients', 'billing', 'inventory', 'settings', 'users', 'ai'];
 
 export const MODULE_LABELS_ES: Record<Module, string> = {
     dashboard: 'Panel Principal',
@@ -59,5 +59,6 @@ export const MODULE_LABELS_ES: Record<Module, string> = {
     billing: 'Facturación',
     inventory: 'Inventario',
     settings: 'Ajustes',
-    users: 'Usuarios'
+    users: 'Usuarios',
+    ai: 'Notificaciones'
 };

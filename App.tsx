@@ -8,6 +8,7 @@ import Clients from './components/Clients';
 import Inventory from './components/Inventory';
 import Settings from './components/Settings';
 import Billing from './components/Billing';
+import AIModule from './components/AIModule';
 import { useAuth } from './hooks/useAuth';
 import { UserRole, Module, PermissionSet } from './types';
 import Login from './components/Login';
@@ -63,6 +64,11 @@ const MainLayout: React.FC = () => (
             <Route path="/inventory" element={
               <ProtectedRoute module="inventory" permission="view">
                 <Inventory />
+              </ProtectedRoute>
+            } />
+            <Route path="/ai" element={
+              <ProtectedRoute module="ai" permission="view">
+                <AIModule />
               </ProtectedRoute>
             } />
             <Route path="/settings" element={

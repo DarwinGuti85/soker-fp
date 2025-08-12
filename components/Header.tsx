@@ -1,9 +1,8 @@
-
 import React, { useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { User, UserRole } from '../types';
-import { LogoIcon, ChevronDownIcon, DashboardIcon, ServicesIcon, ClientsIcon, InventoryIcon, UsersIcon, LogoutIcon, MenuIcon, CloseIcon, BillingIcon, SettingsIcon } from './ui/icons';
+import { LogoIcon, ChevronDownIcon, DashboardIcon, ServicesIcon, ClientsIcon, InventoryIcon, UsersIcon, LogoutIcon, MenuIcon, CloseIcon, BillingIcon, SettingsIcon, SparklesIcon } from './ui/icons';
 
 const NavItem: React.FC<{ to: string, children: React.ReactNode, icon: React.ReactNode, isMobile?: boolean }> = ({ to, children, icon, isMobile = false }) => {
   const commonClasses = "flex items-center space-x-3 px-3 py-2 rounded-md font-medium transition-colors";
@@ -32,6 +31,7 @@ const NavLinks: React.FC<{ isMobile?: boolean }> = ({ isMobile }) => {
       {hasPermission('clients', 'view') && <NavItem to="/clients" icon={<ClientsIcon className={isMobile ? "h-6 w-6" : "h-5 w-5"}/>} isMobile={isMobile}>Clientes</NavItem>}
       {hasPermission('billing', 'view') && <NavItem to="/billing" icon={<BillingIcon className={isMobile ? "h-6 w-6" : "h-5 w-5"}/>} isMobile={isMobile}>Facturación</NavItem>}
       {hasPermission('inventory', 'view') && <NavItem to="/inventory" icon={<InventoryIcon className={isMobile ? "h-6 w-6" : "h-5 w-5"}/>} isMobile={isMobile}>Inventario</NavItem>}
+      {hasPermission('ai', 'view') && <NavItem to="/ai" icon={<SparklesIcon className={isMobile ? "h-6 w-6" : "h-5 w-5"}/>} isMobile={isMobile}>Notificaciones</NavItem>}
     </>
   );
 };

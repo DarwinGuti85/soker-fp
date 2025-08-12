@@ -11,6 +11,7 @@ const initialPermissions: Permissions = {
     inventory: { view: true, edit: false, delete: false },
     settings: { view: false, edit: false, delete: false },
     users: { view: false, edit: false, delete: false },
+    ai: { view: true, edit: true, delete: false },
   },
   [UserRole.TECHNICIAN]: {
     dashboard: { view: true, edit: false, delete: false },
@@ -20,6 +21,7 @@ const initialPermissions: Permissions = {
     inventory: { view: true, edit: true, delete: false },
     settings: { view: false, edit: false, delete: false },
     users: { view: false, edit: false, delete: false },
+    ai: { view: false, edit: false, delete: false },
   },
 };
 
