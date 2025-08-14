@@ -1,8 +1,8 @@
 
-import React, { useState } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useData } from '../hooks/useData';
 import { useAuth } from '../hooks/useAuth';
-import { Client, ServiceOrder } from '../types';
+import { Client } from '../types';
 import { CloseIcon, TrashIcon, EditIcon } from './ui/icons';
 
 const ClientFormModal: React.FC<{
@@ -124,6 +124,14 @@ const Clients: React.FC = () => {
     const [clientToDelete, setClientToDelete] = useState<Client | null>(null);
     const [editingClient, setEditingClient] = useState<Client | null>(null);
 
+    const [searchTerm, setSearchTerm] = useState('');
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 10;
+    
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchTerm]);
+
     const handleOpenModal = (client: Client | null) => {
         setEditingClient(client);
         setIsModalOpen(true);
@@ -132,6 +140,29 @@ const Clients: React.FC = () => {
     const handleCloseModal = () => {
         setIsModalOpen(false);
         setEditingClient(null);
+    };
+
+    const filteredClients = useMemo(() => {
+        if (!searchTerm.trim()) {
+            return clients;
+        }
+        const lowercasedTerm = searchTerm.toLowerCase();
+        return clients.filter(client =>
+            `${client.firstName} ${client.lastName}`.toLowerCase().includes(lowercasedTerm) ||
+            (client.taxId && client.taxId.toLowerCase().includes(lowercasedTerm)) ||
+            client.whatsapp.toLowerCase().includes(lowercasedTerm)
+        );
+    }, [clients, searchTerm]);
+    
+    // Pagination logic
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const currentClients = filteredClients.slice(indexOfFirstItem, indexOfLastItem);
+    const pageCount = Math.ceil(filteredClients.length / itemsPerPage);
+
+    const paginate = (pageNumber: number) => {
+        if (pageNumber < 1 || pageNumber > pageCount) return;
+        setCurrentPage(pageNumber);
     };
 
     const handleSave = (clientData: Omit<Client, 'id' | 'createdAt'>, id?: string) => {
@@ -165,7 +196,7 @@ const Clients: React.FC = () => {
     }
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 animate-fadeInUp">
             {isModalOpen && 
                 <ClientFormModal
                     editingClient={editingClient}
@@ -181,17 +212,31 @@ const Clients: React.FC = () => {
                     hasServices={clientHasServices(clientToDelete.id)}
                 />
             }
-            <div className="flex justify-between items-center">
-                <h1 className="text-3xl font-bold text-white">Clientes</h1>
+            <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
+                <div>
+                    <h1 className="text-3xl font-bold text-white">Clientes</h1>
+                    <p className="text-brand-text-dark mt-1">Busca y gestiona la información de tus clientes.</p>
+                </div>
                 {hasPermission('clients', 'edit') && (
                     <button
                         onClick={() => handleOpenModal(null)}
-                        className="bg-brand-orange text-white px-4 py-2 rounded-md font-semibold hover:bg-orange-600 transition-colors"
+                        className="bg-brand-orange text-white px-4 py-2 rounded-md font-semibold hover:bg-orange-600 transition-colors self-start md:self-auto"
                     >
                         Añadir Nuevo Cliente
                     </button>
                 )}
             </div>
+
+            <div className="mt-4">
+                <input
+                    type="text"
+                    placeholder="Buscar por nombre, documento o WhatsApp..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full md:w-1/2 lg:w-1/3 bg-brand-bg-light border border-gray-700 rounded-md p-2.5 text-brand-text focus:ring-brand-orange focus:border-brand-orange transition-colors"
+                />
+            </div>
+
 
             <div className="bg-brand-bg-light rounded-lg shadow-lg border border-gray-700/50 overflow-hidden">
                 <div className="overflow-x-auto">
@@ -205,36 +250,68 @@ const Clients: React.FC = () => {
                             </tr>
                         </thead>
                         <tbody className="bg-brand-bg-light divide-y divide-gray-700">
-                            {clients.map((client) => (
-                                <tr key={client.id} className="hover:bg-gray-800/40 transition-colors">
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="text-sm font-medium text-brand-text">{`${client.firstName} ${client.lastName}`}</div>
-                                        <div className="text-sm text-brand-text-dark">{client.taxId || 'N/A'}</div>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-brand-text-dark">
-                                        <div>{client.whatsapp || 'N/A'}</div>
-                                        <div>{client.email || 'N/A'}</div>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-brand-text-dark">{client.address}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-left text-sm font-medium">
-                                        <div className="flex items-center space-x-4">
-                                            {hasPermission('clients', 'edit') && (
-                                                <button onClick={() => handleOpenModal(client)} className="text-brand-orange hover:text-orange-400 transition-colors">
-                                                    <EditIcon className="w-5 h-5" />
-                                                </button>
-                                            )}
-                                            {hasPermission('clients', 'delete') && (
-                                                <button onClick={() => handleDeleteClick(client)} className="text-red-500 hover:text-red-400 transition-colors">
-                                                    <TrashIcon className="w-5 h-5" />
-                                                </button>
-                                            )}
-                                        </div>
+                            {currentClients.length > 0 ? (
+                                currentClients.map((client, index) => (
+                                    <tr key={client.id} className="hover:bg-gray-800/40 transition-colors animate-fadeInUp" style={{ animationDelay: `${Math.min(index * 50, 500)}ms`}}>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="text-sm font-medium text-brand-text">{`${client.firstName} ${client.lastName}`}</div>
+                                            <div className="text-sm text-brand-text-dark">{client.taxId || 'N/A'}</div>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-brand-text-dark">
+                                            <div>{client.whatsapp || 'N/A'}</div>
+                                            <div>{client.email || 'N/A'}</div>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-brand-text-dark">{client.address}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-left text-sm font-medium">
+                                            <div className="flex items-center space-x-4">
+                                                {hasPermission('clients', 'edit') && (
+                                                    <button onClick={() => handleOpenModal(client)} className="text-brand-orange hover:text-orange-400 transition-colors">
+                                                        <EditIcon className="w-5 h-5" />
+                                                    </button>
+                                                )}
+                                                {hasPermission('clients', 'delete') && (
+                                                    <button onClick={() => handleDeleteClick(client)} className="text-red-500 hover:text-red-400 transition-colors">
+                                                        <TrashIcon className="w-5 h-5" />
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan={4} className="text-center py-10 px-6 text-brand-text-dark">
+                                        No se encontraron clientes que coincidan con la búsqueda.
                                     </td>
                                 </tr>
-                            ))}
+                            )}
                         </tbody>
                     </table>
                 </div>
+
+                {pageCount > 1 && (
+                    <div className="px-6 py-4 flex items-center justify-between border-t border-gray-700">
+                        <span className="text-sm text-brand-text-dark">
+                            Página {currentPage} de {pageCount} ({filteredClients.length} resultados)
+                        </span>
+                        <div className="flex items-center space-x-2">
+                            <button
+                                onClick={() => paginate(currentPage - 1)}
+                                disabled={currentPage === 1}
+                                className="px-3 py-1 rounded-md bg-brand-bg-dark text-sm font-semibold text-brand-text enabled:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                Anterior
+                            </button>
+                            <button
+                                onClick={() => paginate(currentPage + 1)}
+                                disabled={currentPage === pageCount}
+                                className="px-3 py-1 rounded-md bg-brand-bg-dark text-sm font-semibold text-brand-text enabled:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                Siguiente
+                            </button>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );

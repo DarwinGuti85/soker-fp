@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { User, UserRole } from '../types';
-import { LogoIcon, ChevronDownIcon, DashboardIcon, ServicesIcon, ClientsIcon, InventoryIcon, UsersIcon, LogoutIcon, MenuIcon, CloseIcon, BillingIcon, SettingsIcon, SparklesIcon } from './ui/icons';
+import { ChevronDownIcon, DashboardIcon, ServicesIcon, ClientsIcon, InventoryIcon, UsersIcon, LogoutIcon, MenuIcon, CloseIcon, BillingIcon, SettingsIcon, SparklesIcon } from './ui/icons';
 
 const NavItem: React.FC<{ to: string, children: React.ReactNode, icon: React.ReactNode, isMobile?: boolean }> = ({ to, children, icon, isMobile = false }) => {
   const commonClasses = "flex items-center space-x-3 px-3 py-2 rounded-md font-medium transition-colors";
@@ -57,9 +57,8 @@ const Header: React.FC = () => {
         <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-8">
-              <NavLink to="/dashboard" className="flex-shrink-0 flex items-center space-x-2 text-brand-orange">
-                <LogoIcon className="h-8 w-8" />
-                <span className="font-bold text-xl text-white">SOKER FP</span>
+              <NavLink to="/dashboard" className="flex-shrink-0 flex items-center space-x-2">
+                <h1 className="neon-title">𝕊𝕆𝕂𝔼ℝ 𝔽ℙ</h1>
               </NavLink>
               <div className="hidden md:flex items-center space-x-4">
                 <NavLinks />
@@ -117,9 +116,8 @@ const Header: React.FC = () => {
           style={{animationDuration: '300ms'}}
         >
           <div className="flex justify-between items-center mb-8">
-            <NavLink to="/dashboard" className="flex-shrink-0 flex items-center space-x-2 text-brand-orange">
-              <LogoIcon className="h-8 w-8" />
-              <span className="font-bold text-xl text-white">SOKER FP</span>
+            <NavLink to="/dashboard" className="flex-shrink-0 flex items-center space-x-2">
+                <h1 className="neon-title">𝕊𝕆𝕂𝔼ℝ 𝔽ℙ</h1>
             </NavLink>
             <button onClick={() => setMobileMenuOpen(false)} className="text-brand-text-dark hover:text-white p-2" aria-label="Cerrar menú">
               <CloseIcon className="h-7 w-7" />

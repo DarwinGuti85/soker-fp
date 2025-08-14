@@ -409,8 +409,11 @@ const SelectServiceToBillModal: React.FC<{
 const Billing: React.FC = () => {
   const { invoices, services } = useData();
   const { hasPermission } = useAuth();
+  
   const [searchTerm, setSearchTerm] = useState('');
-
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+  
   const [isNewInvoiceModalOpen, setIsNewInvoiceModalOpen] = useState(false);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [isSelectServiceModalOpen, setIsSelectServiceModalOpen] = useState(false);
@@ -420,6 +423,10 @@ const Billing: React.FC = () => {
 
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
+  
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
 
   useEffect(() => {
     const action = searchParams.get('action');
@@ -451,6 +458,16 @@ const Billing: React.FC = () => {
     );
   }, [invoices, searchTerm]);
   
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentInvoices = filteredInvoices.slice(indexOfFirstItem, indexOfLastItem);
+  const pageCount = Math.ceil(filteredInvoices.length / itemsPerPage);
+
+  const paginate = (pageNumber: number) => {
+      if (pageNumber < 1 || pageNumber > pageCount) return;
+      setCurrentPage(pageNumber);
+  };
+
   const handleOpenDetailsModal = (invoice: Invoice) => {
     setSelectedInvoice(invoice);
     setIsDetailsModalOpen(true);
@@ -475,7 +492,7 @@ const Billing: React.FC = () => {
   const canEditBilling = hasPermission('billing', 'edit');
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fadeInUp">
       {canEditBilling && (
         <>
         <NewInvoiceModal 
@@ -517,7 +534,7 @@ const Billing: React.FC = () => {
             placeholder="Buscar por # Factura, Cliente, o # Servicio..."
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
-            className="w-full md:w-1/3 bg-brand-bg-light border border-gray-700 rounded-md p-2.5 text-brand-text focus:ring-brand-orange focus:border-brand-orange"
+            className="w-full md:w-1/2 lg:w-1/3 bg-brand-bg-light border border-gray-700 rounded-md p-2.5 text-brand-text focus:ring-brand-orange focus:border-brand-orange"
         />
         
         <div className="bg-brand-bg-light rounded-lg shadow-lg border border-gray-700/50 overflow-hidden">
@@ -534,8 +551,8 @@ const Billing: React.FC = () => {
                     </tr>
                     </thead>
                     <tbody className="bg-brand-bg-light divide-y divide-gray-700">
-                    {filteredInvoices.map((invoice) => (
-                        <tr key={invoice.id} className="hover:bg-gray-800/40 transition-colors">
+                    {currentInvoices.map((invoice, index) => (
+                        <tr key={invoice.id} className="hover:bg-gray-800/40 transition-colors animate-fadeInUp" style={{ animationDelay: `${Math.min(index * 50, 500)}ms`}}>
                             <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-brand-text">{invoice.id}</td>
                             <td className="px-6 py-4 whitespace-nowrap">
                                 <div className="text-sm text-brand-text">{`${invoice.serviceOrder.client.firstName} ${invoice.serviceOrder.client.lastName}`}</div>
@@ -563,6 +580,29 @@ const Billing: React.FC = () => {
                     </div>
                 )}
             </div>
+             {pageCount > 1 && (
+                    <div className="px-6 py-4 flex items-center justify-between border-t border-gray-700">
+                        <span className="text-sm text-brand-text-dark">
+                            Página {currentPage} de {pageCount} ({filteredInvoices.length} resultados)
+                        </span>
+                        <div className="flex items-center space-x-2">
+                            <button
+                                onClick={() => paginate(currentPage - 1)}
+                                disabled={currentPage === 1}
+                                className="px-3 py-1 rounded-md bg-brand-bg-dark text-sm font-semibold text-brand-text enabled:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                Anterior
+                            </button>
+                            <button
+                                onClick={() => paginate(currentPage + 1)}
+                                disabled={currentPage === pageCount}
+                                className="px-3 py-1 rounded-md bg-brand-bg-dark text-sm font-semibold text-brand-text enabled:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                Siguiente
+                            </button>
+                        </div>
+                    </div>
+                )}
         </div>
       </div>
     </div>

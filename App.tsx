@@ -31,13 +31,63 @@ const ProtectedRoute: React.FC<{
   return <>{children}</>;
 };
 
+const AnimatedBackground: React.FC = () => (
+    <div className="background" aria-hidden="true">
+        <svg className="illustration" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 400">
+            <defs>
+                <style>
+                    {`.st0{fill:#FF5B22;font-size:10px;font-family:monospace;}`}
+                </style>
+            </defs>
+            <g className="hover">
+                <g className="number-one"><text transform="matrix(1 0 0 1 100 80)" className="st0">1</text></g>
+                <g className="number-two"><text transform="matrix(1 0 0 1 250 120)" className="st0">0</text></g>
+                <g className="number-three"><text transform="matrix(1 0 0 1 50 200)" className="st0">0</text></g>
+                <g className="number-four"><text transform="matrix(1 0 0 1 400 50)" className="st0">1</text></g>
+                <g className="number-five"><text transform="matrix(1 0 0 1 300 250)" className="st0">1</text></g>
+                <g className="number-six"><text transform="matrix(1 0 0 1 120 300)" className="st0">0</text></g>
+                <g className="number-seven"><text transform="matrix(1 0 0 1 450 180)" className="st0">0</text></g>
+                <g className="number-eight"><text transform="matrix(1 0 0 1 20 150)" className="st0">1</text></g>
+                <g className="number-nine"><text transform="matrix(1 0 0 1 350 350)" className="st0">0</text></g>
+                <g className="number-ten"><text transform="matrix(1 0 0 1 480 20)" className="st0">1</text></g>
+                <g className="number-eleven"><text transform="matrix(1 0 0 1 270 20)" className="st0">0</text></g>
+                <g className="number-twelve"><text transform="matrix(1 0 0 1 180 220)" className="st0">1</text></g>
+                <g className="number-thirteen"><text transform="matrix(1 0 0 1 420 280)" className="st0">0</text></g>
+                <g className="number-fourteen"><text transform="matrix(1 0 0 1 150 50)" className="st0">0</text></g>
+                <g className="number-fifteen"><text transform="matrix(1 0 0 1 380 150)" className="st0">1</text></g>
+                <g className="number-sixteen"><text transform="matrix(1 0 0 1 80 350)" className="st0">1</text></g>
+                <g className="number-seventeen"><text transform="matrix(1 0 0 1 460 320)" className="st0">0</text></g>
+                <g className="number-eighteen"><text transform="matrix(1 0 0 1 200 10)" className="st0">1</text></g>
+                <g className="number-nineteen"><text transform="matrix(1 0 0 1 200 380)" className="st0">0</text></g>
+                <g className="number-twenty"><text transform="matrix(1 0 0 1 30 280)" className="st0">1</text></g>
+                <g className="number-twenty-one"><text transform="matrix(1 0 0 1 70 40)" className="st0">0</text></g>
+                <g className="number-twenty-two"><text transform="matrix(1 0 0 1 170 90)" className="st0">1</text></g>
+                <g className="number-twenty-three"><text transform="matrix(1 0 0 1 330 60)" className="st0">0</text></g>
+                <g className="number-twenty-four"><text transform="matrix(1 0 0 1 440 140)" className="st0">1</text></g>
+                <g className="number-twenty-five"><text transform="matrix(1 0 0 1 80 180)" className="st0">0</text></g>
+                <g className="number-twenty-six"><text transform="matrix(1 0 0 1 260 270)" className="st0">1</text></g>
+                <g className="number-twenty-seven"><text transform="matrix(1 0 0 1 390 230)" className="st0">0</text></g>
+                <g className="number-twenty-eight"><text transform="matrix(1 0 0 1 490 310)" className="st0">1</text></g>
+                <g className="number-twenty-nine"><text transform="matrix(1 0 0 1 10 330)" className="st0">0</text></g>
+                <g className="number-thirty"><text transform="matrix(1 0 0 1 160 360)" className="st0">1</text></g>
+                <g className="number-thirty-one"><text transform="matrix(1 0 0 1 280 340)" className="st0">0</text></g>
+                <g className="number-thirty-two"><text transform="matrix(1 0 0 1 410 380)" className="st0">1</text></g>
+                <g className="number-thirty-three"><text transform="matrix(1 0 0 1 230 5)" className="st0">0</text></g>
+                <g className="number-thirty-four"><text transform="matrix(1 0 0 1 370 95)" className="st0">1</text></g>
+                <g className="number-thirty-five"><text transform="matrix(1 0 0 1 90 240)" className="st0">0</text></g>
+                <g className="number-thirty-six"><text transform="matrix(1 0 0 1 210 160)" className="st0">1</text></g>
+                <g className="number-thirty-seven"><text transform="matrix(1 0 0 1 310 110)" className="st0">0</text></g>
+                <g className="number-thirty-eight"><text transform="matrix(1 0 0 1 60 390)" className="st0">1</text></g>
+                <g className="number-thirty-nine"><text transform="matrix(1 0 0 1 470 250)" className="st0">0</text></g>
+                <g className="number-forty"><text transform="matrix(1 0 0 1 240 310)" className="st0">1</text></g>
+            </g>
+        </svg>
+    </div>
+);
+
 const MainLayout: React.FC = () => (
-  <div className="min-h-screen bg-brand-bg-dark text-brand-text font-sans antialiased">
-    <div 
-      className="absolute inset-0 bg-cover bg-center"
-      style={{ backgroundImage: "url(https://images.unsplash.com/photo-1534237939994-38c1b2c8427f?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D)", zIndex: 0, filter: 'grayscale(50%)' }}
-    ></div>
-    <div className="absolute inset-0 bg-black/80" style={{ zIndex: 1 }}></div>
+  <div className="min-h-screen text-brand-text font-sans antialiased relative overflow-hidden">
+    <AnimatedBackground />
     
     <div className="relative z-10">
       <Header />

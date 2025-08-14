@@ -513,6 +513,12 @@ const Services: React.FC = () => {
   
   const [activeFilter, setActiveFilter] = useState<ServiceStatus | 'ALL'>('ALL');
   const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 12;
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeFilter, searchTerm]);
 
   const filteredServices = useMemo(() => {
     let filtered = services;
@@ -532,6 +538,16 @@ const Services: React.FC = () => {
     return filtered.sort((a,b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   }, [services, activeFilter, searchTerm]);
 
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentServices = filteredServices.slice(indexOfFirstItem, indexOfLastItem);
+  const pageCount = Math.ceil(filteredServices.length / itemsPerPage);
+
+  const paginate = (pageNumber: number) => {
+    if (pageNumber < 1 || pageNumber > pageCount) return;
+    setCurrentPage(pageNumber);
+  };
+
   const handleShowDetails = (service: ServiceOrder) => {
     setSelectedServiceId(service.id);
     setIsDetailsModalOpen(true);
@@ -548,7 +564,7 @@ const Services: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fadeInUp">
       {hasPermission('services', 'edit') && <NewOrderModal isOpen={isNewOrderModalOpen} onClose={() => setIsNewOrderModalOpen(false)} />}
       {isDetailsModalOpen && selectedServiceId && <DetailsModalContent serviceId={selectedServiceId} onClose={handleCloseDetails} />}
 
@@ -601,7 +617,7 @@ const Services: React.FC = () => {
 
       {/* Service Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {filteredServices.map(service => (
+        {currentServices.map(service => (
           <ServiceCard key={service.id} service={service} onDetailsClick={() => handleShowDetails(service)} />
         ))}
       </div>
@@ -613,6 +629,29 @@ const Services: React.FC = () => {
         </div>
       )}
 
+      {pageCount > 1 && (
+        <div className="px-6 py-4 flex items-center justify-between border-t border-gray-700">
+            <span className="text-sm text-brand-text-dark">
+                Página {currentPage} de {pageCount} ({filteredServices.length} resultados)
+            </span>
+            <div className="flex items-center space-x-2">
+                <button
+                    onClick={() => paginate(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className="px-3 py-1 rounded-md bg-brand-bg-dark text-sm font-semibold text-brand-text enabled:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                    Anterior
+                </button>
+                <button
+                    onClick={() => paginate(currentPage + 1)}
+                    disabled={currentPage === pageCount}
+                    className="px-3 py-1 rounded-md bg-brand-bg-dark text-sm font-semibold text-brand-text enabled:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                    Siguiente
+                </button>
+            </div>
+        </div>
+      )}
     </div>
   );
 };
