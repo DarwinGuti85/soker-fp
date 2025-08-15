@@ -9,9 +9,7 @@ interface DataContextType {
   invoices: Invoice[];
   users: User[];
   companyInfo: CompanyInfo;
-  revisionPrice: number;
   updateCompanyInfo: (newInfo: CompanyInfo) => void;
-  updateRevisionPrice: (newPrice: number) => void;
   updateService: (serviceId: string, updates: Partial<ServiceOrder>) => void;
   addService: (serviceData: Omit<ServiceOrder, 'id' | 'createdAt' | 'updatedAt'>) => void;
   updateInventoryItem: (itemId: string, updates: Partial<InventoryItem>) => void;
@@ -21,6 +19,7 @@ interface DataContextType {
   deleteClient: (clientId: string) => void;
   updateInvoice: (invoiceId: string, updates: Partial<Invoice>) => void;
   addInvoice: (invoiceData: Omit<Invoice, 'id'>) => void;
+  addHistoricalInvoice: (invoiceData: Omit<Invoice, 'id'> & { id: string }) => void;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -31,15 +30,10 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [inventory, setInventory] = useState<InventoryItem[]>(MOCK_INVENTORY);
   const [invoices, setInvoices] = useState<Invoice[]>(MOCK_INVOICES);
   const [users] = useState<User[]>(MOCK_USERS);
-  const [revisionPrice, setRevisionPrice] = useState<number>(50000);
   const [companyInfo, setCompanyInfo] = useState<CompanyInfo>(MOCK_COMPANY_INFO);
 
   const updateCompanyInfo = useCallback((newInfo: CompanyInfo) => {
     setCompanyInfo(newInfo);
-  }, []);
-
-  const updateRevisionPrice = useCallback((newPrice: number) => {
-    setRevisionPrice(newPrice);
   }, []);
 
   const updateService = useCallback((serviceId: string, updates: Partial<ServiceOrder>) => {
@@ -121,9 +115,22 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setInvoices(prev => [newInvoice, ...prev]);
   }, [invoices.length]);
 
+  const addHistoricalInvoice = useCallback((invoiceData: Omit<Invoice, 'id'> & { id: string }) => {
+    const existing = invoices.find(inv => inv.id === invoiceData.id);
+    if (existing) {
+        const errorMsg = `Error: La factura con el ID ${invoiceData.id} ya existe.`;
+        alert(errorMsg);
+        throw new Error(errorMsg);
+    }
+    const newInvoice: Invoice = {
+      ...invoiceData
+    };
+    setInvoices(prev => [newInvoice, ...prev]);
+  }, [invoices]);
+
 
   return (
-    <DataContext.Provider value={{ services, clients, inventory, invoices, users, companyInfo, revisionPrice, updateCompanyInfo, updateRevisionPrice, updateService, addService, updateInventoryItem, addInventoryItem, addClient, updateClient, deleteClient, updateInvoice, addInvoice }}>
+    <DataContext.Provider value={{ services, clients, inventory, invoices, users, companyInfo, updateCompanyInfo, updateService, addService, updateInventoryItem, addInventoryItem, addClient, updateClient, deleteClient, updateInvoice, addInvoice, addHistoricalInvoice }}>
       {children}
     </DataContext.Provider>
   );

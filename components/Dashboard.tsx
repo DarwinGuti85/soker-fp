@@ -33,7 +33,7 @@ const CustomTooltip: React.FC<any> = ({ active, payload, label }) => {
         <div className="bg-brand-bg-dark/80 backdrop-blur-sm p-3 rounded-md border border-gray-600">
           <p className="label text-white font-bold">{`${label}`}</p>
           {payload.map((p: any, index: number) => (
-             <p key={index} style={{ color: p.color || p.fill }}>{`${p.name}: ${p.dataKey === 'Ingresos' ? new Intl.NumberFormat('es-CO', {style: 'currency', currency: 'COP', minimumFractionDigits: 0}).format(p.value) : p.value.toLocaleString('es-CO')}`}</p>
+             <p key={index} style={{ color: p.color || p.fill }}>{`${p.name}: ${p.dataKey === 'Ingresos' ? new Intl.NumberFormat('es-VE', {style: 'currency', currency: 'VES', minimumFractionDigits: 0}).format(p.value) : p.value.toLocaleString('es-VE')}`}</p>
           ))}
         </div>
       );
@@ -158,7 +158,7 @@ const Dashboard: React.FC = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
         <KPI_Card 
             title="Ingresos del Mes" 
-            value={new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(monthlyIncome)} 
+            value={new Intl.NumberFormat('es-VE', { style: 'currency', currency: 'VES', minimumFractionDigits: 0 }).format(monthlyIncome)} 
             icon={<BanknotesIcon />}
             colorClass="text-green-400"
         />
@@ -194,7 +194,7 @@ const Dashboard: React.FC = () => {
             <BarChart data={monthlyIncomeData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.1)" />
               <XAxis dataKey="name" stroke="#A0A0A0" tick={{ fill: '#A0A0A0', fontSize: 12 }} />
-              <YAxis stroke="#A0A0A0" tick={{ fill: '#A0A0A0', fontSize: 12 }} tickFormatter={(value) => new Intl.NumberFormat('es-CO', { notation: 'compact', compactDisplay: 'short' }).format(value as number)} />
+              <YAxis stroke="#A0A0A0" tick={{ fill: '#A0A0A0', fontSize: 12 }} tickFormatter={(value) => new Intl.NumberFormat('es-VE', { notation: 'compact', compactDisplay: 'short' }).format(value as number)} />
               <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255, 91, 34, 0.1)' }} />
               <Bar dataKey="Ingresos" fill="#FF5B22" radius={[4, 4, 0, 0]} />
             </BarChart>

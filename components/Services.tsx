@@ -23,7 +23,7 @@ const ServiceCard: React.FC<{ service: ServiceOrder; onDetailsClick: () => void 
     >
       <div className="flex justify-between items-start gap-4">
         <h3 className="font-bold text-brand-text group-hover:text-brand-orange transition-colors duration-300 flex items-baseline min-w-0">
-          <span className="font-mono text-xs text-brand-text-dark/80 mr-2 shrink-0">#{service.id}</span>
+          <span className="font-mono text-xs text-brand-text-dark/80 mr-2 shrink-0">#{service.originalInvoiceNumber || service.id}</span>
           <span className="truncate">{service.applianceName}</span>
         </h3>
         <span className={`px-2 py-0.5 text-xs font-semibold rounded-full ${STATUS_COLORS[service.status]} transition-opacity duration-300 shrink-0`}>
@@ -137,7 +137,7 @@ const DetailsModalContent: React.FC<{ serviceId: string, onClose: () => void }> 
             <div className="bg-brand-bg-light rounded-lg shadow-2xl border border-gray-700/50 w-full max-w-3xl max-h-[90vh] flex flex-col">
                 {/* Header */}
                 <div className="px-6 py-4 border-b border-gray-700 flex justify-between items-center">
-                    <h2 className="text-2xl font-bold text-white">Detalles del Servicio #{currentService.id}</h2>
+                    <h2 className="text-2xl font-bold text-white">Detalles del Servicio #{currentService.originalInvoiceNumber || currentService.id}</h2>
                     <button onClick={onClose} className="text-gray-400 hover:text-white"> <CloseIcon className="h-6 w-6" /> </button>
                 </div>
                 
@@ -178,6 +178,7 @@ const DetailsModalContent: React.FC<{ serviceId: string, onClose: () => void }> 
                              <h3 className="text-lg font-bold text-brand-orange border-b border-brand-orange/30 pb-2">Artefacto</h3>
                             <p><strong className="text-brand-text-dark">Tipo:</strong> {currentService.applianceName}</p>
                             <p><strong className="text-brand-text-dark">Marca/Modelo:</strong> {currentService.applianceType}</p>
+                            {currentService.originalInvoiceNumber && <p><strong className="text-brand-text-dark">ID Interno:</strong> {currentService.id}</p>}
                         </div>
                     </div>
 
@@ -252,7 +253,7 @@ const DetailsModalContent: React.FC<{ serviceId: string, onClose: () => void }> 
                                         <div key={part.id} className="flex justify-between items-center p-2 bg-gray-700/50 rounded-md">
                                             <div>
                                                 <p className="text-sm font-medium">{part.name}</p>
-                                                <p className="text-xs text-brand-text-dark">Stock: {part.quantity} - {new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(part.price)}</p>
+                                                <p className="text-xs text-brand-text-dark">Stock: {part.quantity} - {new Intl.NumberFormat('es-VE', { style: 'currency', currency: 'VES' }).format(part.price)}</p>
                                             </div>
                                             <button onClick={() => handleAddPart(part)} className="bg-green-600 text-white p-1 rounded-full hover:bg-green-500"><PlusCircleIcon className="h-5 w-5" /></button>
                                         </div>
@@ -269,7 +270,7 @@ const DetailsModalContent: React.FC<{ serviceId: string, onClose: () => void }> 
                                      {currentService.partsUsed && currentService.partsUsed.length > 0 ? currentService.partsUsed.map(part => (
                                          <tr key={part.id}>
                                              <td className="p-3">{part.name}</td><td className="p-3 font-mono">{part.sku}</td>
-                                             <td className="p-3 text-right">{new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(part.price)}</td>
+                                             <td className="p-3 text-right">{new Intl.NumberFormat('es-VE', { style: 'currency', currency: 'VES' }).format(part.price)}</td>
                                              <td className="p-3 text-center">
                                                 {canEditService ? (
                                                     <button onClick={() => handleRemovePart(part)} className="text-red-500 hover:text-red-400 p-1"><TrashIcon className="h-4 w-4" /></button>
@@ -532,7 +533,8 @@ const Services: React.FC = () => {
       filtered = filtered.filter(s => 
         s.applianceName.toLowerCase().includes(lowercasedTerm) ||
         `${s.client.firstName} ${s.client.lastName}`.toLowerCase().includes(lowercasedTerm) ||
-        s.id.toLowerCase().includes(lowercasedTerm)
+        s.id.toLowerCase().includes(lowercasedTerm) ||
+        (s.originalInvoiceNumber && s.originalInvoiceNumber.toLowerCase().includes(lowercasedTerm))
       );
     }
     return filtered.sort((a,b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());

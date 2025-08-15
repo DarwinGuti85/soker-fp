@@ -26,7 +26,7 @@ const NewInvoiceModal: React.FC<{
     onClose: () => void;
     serviceToBill: ServiceOrder | null;
 }> = ({ isOpen, onClose, serviceToBill }) => {
-    const { addInvoice, revisionPrice } = useData();
+    const { addInvoice } = useData();
     const [laborCost, setLaborCost] = useState(0);
 
     const partsTotal = useMemo(() =>
@@ -34,7 +34,7 @@ const NewInvoiceModal: React.FC<{
         [serviceToBill]
     );
 
-    const subtotal = revisionPrice + laborCost + partsTotal;
+    const subtotal = laborCost + partsTotal;
     const taxAmount = subtotal * 0.16;
     const totalAmount = subtotal + taxAmount;
 
@@ -49,7 +49,6 @@ const NewInvoiceModal: React.FC<{
             serviceOrder: serviceToBill,
             issueDate: new Date().toISOString(),
             status: InvoiceStatus.UNPAID,
-            revisionPrice,
             laborCost,
             partsTotal,
             subtotal,
@@ -94,12 +93,8 @@ const NewInvoiceModal: React.FC<{
                        <h3 className="text-lg font-bold text-brand-orange">Resumen de Costos</h3>
                        <div className="bg-brand-bg-dark/50 p-4 rounded-lg space-y-3">
                             <div className="flex justify-between items-center text-brand-text-dark">
-                                <span>Costo de Revisión:</span>
-                                <span>{new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(revisionPrice)}</span>
-                            </div>
-                            <div className="flex justify-between items-center text-brand-text-dark">
                                 <span>Subtotal de Repuestos:</span>
-                                <span>{new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(partsTotal)}</span>
+                                <span>{new Intl.NumberFormat('es-VE', { style: 'currency', currency: 'VES' }).format(partsTotal)}</span>
                             </div>
                             <div className="flex justify-between items-center">
                                 <label htmlFor="laborCost" className="text-brand-text-dark font-semibold">Costo de Mano de Obra:</label>
@@ -115,15 +110,15 @@ const NewInvoiceModal: React.FC<{
                             </div>
                             <div className="flex justify-between items-center text-brand-text text-lg pt-3 border-t border-gray-600">
                                 <span className="font-semibold">Subtotal:</span>
-                                <span>{new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(subtotal)}</span>
+                                <span>{new Intl.NumberFormat('es-VE', { style: 'currency', currency: 'VES' }).format(subtotal)}</span>
                             </div>
                              <div className="flex justify-between items-center text-brand-text-dark">
                                 <span>IVA (16%):</span>
-                                <span>{new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(taxAmount)}</span>
+                                <span>{new Intl.NumberFormat('es-VE', { style: 'currency', currency: 'VES' }).format(taxAmount)}</span>
                             </div>
                              <div className="flex justify-between items-center text-white text-2xl font-bold pt-2 border-t-2 border-brand-orange/50 mt-2">
                                 <span>Total a Pagar:</span>
-                                <span className="text-brand-orange">{new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(totalAmount)}</span>
+                                <span className="text-brand-orange">{new Intl.NumberFormat('es-VE', { style: 'currency', currency: 'VES' }).format(totalAmount)}</span>
                             </div>
                        </div>
                     </div>
@@ -192,9 +187,11 @@ const InvoiceDetailsModal: React.FC<{
     const LineItem: React.FC<{ description: string; amount: number; isSub?: boolean }> = ({ description, amount, isSub=false }) => (
         <div className={`flex justify-between items-center py-2 ${!isSub ? 'border-b border-gray-700' : ''}`}>
             <span className={isSub ? 'text-sm' : ''}>{description}</span>
-            <span className={`font-mono ${isSub ? 'text-sm' : ''}`}>{new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(amount)}</span>
+            <span className={`font-mono ${isSub ? 'text-sm' : ''}`}>{new Intl.NumberFormat('es-VE', { style: 'currency', currency: 'VES' }).format(amount)}</span>
         </div>
     );
+    
+    const isHistorical = !invoice.serviceOrder;
 
     return (
         <div className="fixed inset-0 bg-black/70 z-50 flex justify-center items-center p-4" aria-modal="true" role="dialog">
@@ -225,14 +222,14 @@ const InvoiceDetailsModal: React.FC<{
                         <section className="grid grid-cols-2 gap-8 my-6">
                             <div>
                                 <h4 className="font-bold text-brand-text-dark uppercase tracking-wider text-sm mb-2">Facturar a:</h4>
-                                <p className="font-bold text-lg text-white">{`${invoice.serviceOrder.client.firstName} ${invoice.serviceOrder.client.lastName}`}</p>
-                                <p className="text-sm">{invoice.serviceOrder.client.taxId || 'N/A'}</p>
-                                <p className="text-sm">{invoice.serviceOrder.client.address}</p>
-                                <p className="text-sm">{invoice.serviceOrder.client.email}</p>
+                                <p className="font-bold text-lg text-white">{isHistorical ? invoice.clientName : `${invoice.serviceOrder.client.firstName} ${invoice.serviceOrder.client.lastName}`}</p>
+                                {!isHistorical && <p className="text-sm">{invoice.serviceOrder.client.taxId || 'N/A'}</p>}
+                                {!isHistorical && <p className="text-sm">{invoice.serviceOrder.client.address}</p>}
+                                {!isHistorical && <p className="text-sm">{invoice.serviceOrder.client.email}</p>}
                             </div>
                             <div className="text-right flex flex-col items-end">
                                 <h4 className="font-bold text-brand-text-dark uppercase tracking-wider text-sm mb-2">Total a Pagar:</h4>
-                                <p className="text-4xl font-bold text-brand-orange">{new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(invoice.totalAmount)}</p>
+                                <p className="text-4xl font-bold text-brand-orange">{new Intl.NumberFormat('es-VE', { style: 'currency', currency: 'VES' }).format(invoice.totalAmount)}</p>
                                 <span className={`mt-2 px-3 py-1 text-sm font-semibold rounded-full ${INVOICE_STATUS_COLORS[invoice.status]}`}>{INVOICE_STATUS_LABELS_ES[invoice.status]}</span>
                             </div>
                         </section>
@@ -240,53 +237,67 @@ const InvoiceDetailsModal: React.FC<{
                         <section>
                             <h4 className="font-bold text-brand-text-dark uppercase tracking-wider text-sm mb-2">Descripción del Servicio:</h4>
                             <div className="bg-brand-bg-light p-4 rounded-lg border border-gray-700">
-                                <p><strong>Artefacto:</strong> {invoice.serviceOrder.applianceName} ({invoice.serviceOrder.applianceType})</p>
-                                <p><strong>Reporte Cliente:</strong> {invoice.serviceOrder.clientDescription}</p>
+                                {isHistorical ? (
+                                    <p>{invoice.applianceDescription}</p>
+                                ) : (
+                                    <>
+                                        <p><strong>Artefacto:</strong> {invoice.serviceOrder.applianceName} ({invoice.serviceOrder.applianceType})</p>
+                                        <p><strong>Reporte Cliente:</strong> {invoice.serviceOrder.clientDescription}</p>
+                                    </>
+                                )}
                             </div>
                         </section>
 
-                        <section className="mt-6">
-                            <table className="w-full text-sm">
-                                <thead className="border-b-2 border-gray-600 text-brand-text-dark">
-                                    <tr>
-                                        <th className="text-left font-semibold uppercase py-2">Descripción</th>
-                                        <th className="text-right font-semibold uppercase py-2">Total</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr className="border-b border-gray-700">
-                                        <td className="py-3">Costo de Revisión</td>
-                                        <td className="text-right font-mono">{new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(invoice.revisionPrice)}</td>
-                                    </tr>
-                                    <tr className="border-b border-gray-700">
-                                        <td className="py-3">Mano de Obra</td>
-                                        <td className="text-right font-mono">{new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(invoice.laborCost)}</td>
-                                    </tr>
-                                    {invoice.serviceOrder.partsUsed && invoice.serviceOrder.partsUsed.length > 0 && (
-                                        <tr className="border-b border-gray-700">
-                                            <td className="py-3">
-                                                <p>Repuestos Utilizados:</p>
-                                                <ul className="list-disc pl-5 mt-1 text-xs text-brand-text-dark">
-                                                    {invoice.serviceOrder.partsUsed.map(p => <li key={p.id}>{p.name}</li>)}
-                                                </ul>
-                                            </td>
-                                            <td className="text-right align-top pt-3 font-mono">{new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(invoice.partsTotal)}</td>
+                        {!isHistorical ? (
+                            <>
+                            <section className="mt-6">
+                                <table className="w-full text-sm">
+                                    <thead className="border-b-2 border-gray-600 text-brand-text-dark">
+                                        <tr>
+                                            <th className="text-left font-semibold uppercase py-2">Descripción</th>
+                                            <th className="text-right font-semibold uppercase py-2">Total</th>
                                         </tr>
-                                    )}
-                                </tbody>
-                            </table>
-                        </section>
-
-                        <section className="flex justify-end mt-6">
-                            <div className="w-full max-w-xs text-sm">
-                                <LineItem description="Subtotal" amount={invoice.subtotal} />
-                                <LineItem description="IVA (16%)" amount={invoice.taxAmount} />
-                                <div className="flex justify-between items-center py-2 mt-2 border-t-2 border-gray-600">
-                                    <span className="text-base font-bold uppercase">Total</span>
-                                    <span className="text-base font-bold font-mono">{new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(invoice.totalAmount)}</span>
+                                    </thead>
+                                    <tbody>
+                                        <tr className="border-b border-gray-700">
+                                            <td className="py-3">Mano de Obra</td>
+                                            <td className="text-right font-mono">{new Intl.NumberFormat('es-VE', { style: 'currency', currency: 'VES' }).format(invoice.laborCost)}</td>
+                                        </tr>
+                                        {invoice.serviceOrder.partsUsed && invoice.serviceOrder.partsUsed.length > 0 && (
+                                            <tr className="border-b border-gray-700">
+                                                <td className="py-3">
+                                                    <p>Repuestos Utilizados:</p>
+                                                    <ul className="list-disc pl-5 mt-1 text-xs text-brand-text-dark">
+                                                        {invoice.serviceOrder.partsUsed.map(p => <li key={p.id}>{p.name}</li>)}
+                                                    </ul>
+                                                </td>
+                                                <td className="text-right align-top pt-3 font-mono">{new Intl.NumberFormat('es-VE', { style: 'currency', currency: 'VES' }).format(invoice.partsTotal)}</td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </section>
+                            <section className="flex justify-end mt-6">
+                                <div className="w-full max-w-xs text-sm">
+                                    <LineItem description="Subtotal" amount={invoice.subtotal} />
+                                    <LineItem description="IVA (16%)" amount={invoice.taxAmount} />
+                                    <div className="flex justify-between items-center py-2 mt-2 border-t-2 border-gray-600">
+                                        <span className="text-base font-bold uppercase">Total</span>
+                                        <span className="text-base font-bold font-mono">{new Intl.NumberFormat('es-VE', { style: 'currency', currency: 'VES' }).format(invoice.totalAmount)}</span>
+                                    </div>
                                 </div>
-                            </div>
-                        </section>
+                            </section>
+                            </>
+                        ) : (
+                             <section className="flex justify-end mt-6">
+                                <div className="w-full max-w-xs text-sm">
+                                    <div className="flex justify-between items-center py-2 mt-2 border-t-2 border-gray-600">
+                                        <span className="text-base font-bold uppercase">Total</span>
+                                        <span className="text-base font-bold font-mono">{new Intl.NumberFormat('es-VE', { style: 'currency', currency: 'VES' }).format(invoice.totalAmount)}</span>
+                                    </div>
+                                </div>
+                            </section>
+                        )}
                     </div>
                 </div>
 
@@ -329,7 +340,7 @@ const SelectServiceToBillModal: React.FC<{
     const [searchTerm, setSearchTerm] = useState('');
 
     const billableServices = useMemo(() => {
-        const invoicedServiceIds = new Set(invoices.map(inv => inv.serviceOrder.id));
+        const invoicedServiceIds = new Set(invoices.map(inv => inv.serviceOrder?.id));
         const completedUnbilled = services.filter(s => 
             s.status === ServiceStatus.COMPLETED && 
             !invoicedServiceIds.has(s.id)
@@ -434,7 +445,7 @@ const Billing: React.FC = () => {
 
     if (action === 'create' && serviceId) {
         const service = services.find(s => s.id === serviceId);
-        const existingInvoice = invoices.find(inv => inv.serviceOrder.id === serviceId);
+        const existingInvoice = invoices.find(inv => inv.serviceOrder?.id === serviceId);
 
         if (service && !existingInvoice && hasPermission('billing', 'edit')) {
             setServiceToBill(service);
@@ -453,8 +464,9 @@ const Billing: React.FC = () => {
     const lowercasedFilter = searchTerm.toLowerCase();
     return sortedInvoices.filter(invoice =>
       invoice.id.toLowerCase().includes(lowercasedFilter) ||
-      `${invoice.serviceOrder.client.firstName} ${invoice.serviceOrder.client.lastName}`.toLowerCase().includes(lowercasedFilter) ||
-      invoice.serviceOrder.id.toLowerCase().includes(lowercasedFilter)
+      (invoice.clientName && invoice.clientName.toLowerCase().includes(lowercasedFilter)) ||
+      (invoice.serviceOrder && `${invoice.serviceOrder.client.firstName} ${invoice.serviceOrder.client.lastName}`.toLowerCase().includes(lowercasedFilter)) ||
+      (invoice.serviceOrder && invoice.serviceOrder.id.toLowerCase().includes(lowercasedFilter))
     );
   }, [invoices, searchTerm]);
   
@@ -555,11 +567,11 @@ const Billing: React.FC = () => {
                         <tr key={invoice.id} className="hover:bg-gray-800/40 transition-colors animate-fadeInUp" style={{ animationDelay: `${Math.min(index * 50, 500)}ms`}}>
                             <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-brand-text">{invoice.id}</td>
                             <td className="px-6 py-4 whitespace-nowrap">
-                                <div className="text-sm text-brand-text">{`${invoice.serviceOrder.client.firstName} ${invoice.serviceOrder.client.lastName}`}</div>
-                                <div className="text-xs text-brand-text-dark">Servicio: {invoice.serviceOrder.id}</div>
+                                <div className="text-sm text-brand-text">{invoice.clientName || `${invoice.serviceOrder?.client.firstName} ${invoice.serviceOrder?.client.lastName}`}</div>
+                                <div className="text-xs text-brand-text-dark">Servicio: {invoice.serviceOrder?.id || 'Histórico'}</div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-brand-text-dark">{new Date(invoice.issueDate).toLocaleDateString('es-ES')}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-brand-text-dark">{new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(invoice.totalAmount)}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-brand-text-dark">{new Intl.NumberFormat('es-VE', { style: 'currency', currency: 'VES' }).format(invoice.totalAmount)}</td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm">
                                 <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${INVOICE_STATUS_COLORS[invoice.status]}`}>
                                     {INVOICE_STATUS_LABELS_ES[invoice.status]}

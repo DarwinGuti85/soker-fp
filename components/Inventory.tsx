@@ -198,7 +198,7 @@ const Inventory: React.FC = () => {
                             <td className={`px-6 py-4 whitespace-nowrap text-sm font-bold ${item.quantity > 5 ? 'text-green-400' : item.quantity > 0 ? 'text-yellow-400' : 'text-red-500'}`}>
                                 {item.quantity}
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-brand-text-dark">{new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(item.price)}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-brand-text-dark">{new Intl.NumberFormat('es-VE', { style: 'currency', currency: 'VES' }).format(item.price)}</td>
                             <td className="px-6 py-4 whitespace-nowrap text-left text-sm font-medium">
                                 {canEdit ? (
                                     <button onClick={() => handleOpenModal(item)} className="text-brand-orange hover:text-orange-400 transition-colors">
@@ -236,7 +236,7 @@ const Inventory: React.FC = () => {
                         <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.1)" />
                         <XAxis type="number" stroke="#A0A0A0" tick={{fill: '#A0A0A0', fontSize: 10}} tickFormatter={(value) => new Intl.NumberFormat('es-CO', { notation: 'compact', compactDisplay: 'short' }).format(value as number)}/>
                         <YAxis type="category" dataKey="name" stroke="#A0A0A0" width={80} tick={{fill: '#A0A0A0', fontSize: 10}} tickLine={false} axisLine={false} />
-                        <Tooltip formatter={(value) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(value as number)} contentStyle={{ backgroundColor: '#1A1A1A', borderColor: '#333' }}/>
+                        <Tooltip formatter={(value) => new Intl.NumberFormat('es-VE', { style: 'currency', currency: 'VES' }).format(value as number)} contentStyle={{ backgroundColor: '#1A1A1A', borderColor: '#333' }}/>
                         <Bar dataKey="Valor Total" fill="#FF5B22" radius={[0, 4, 4, 0]} barSize={15} />
                     </BarChart>
                 </ResponsiveContainer>

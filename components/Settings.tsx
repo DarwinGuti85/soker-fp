@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { useData } from '../hooks/useData';
@@ -178,32 +177,18 @@ const PermissionsManager: React.FC = () => {
 
 const Settings: React.FC = () => {
     const { user: currentUser, users, addUser, updateUser, deleteUser, hasPermission } = useAuth();
-    const { revisionPrice, updateRevisionPrice, companyInfo, updateCompanyInfo } = useData();
+    const { companyInfo, updateCompanyInfo } = useData();
   
     const [isUserModalOpen, setIsUserModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
-    const [priceInput, setPriceInput] = useState<number>(revisionPrice);
-    const [showPriceSuccess, setShowPriceSuccess] = useState(false);
-    
     const [companyForm, setCompanyForm] = useState<CompanyInfo>(companyInfo);
     const [showCompanySuccess, setShowCompanySuccess] = useState(false);
     
     useEffect(() => {
-        setPriceInput(revisionPrice);
-    }, [revisionPrice]);
-    
-    useEffect(() => {
         setCompanyForm(companyInfo);
     }, [companyInfo]);
-
-    const handlePriceSave = (e: React.FormEvent) => {
-        e.preventDefault();
-        updateRevisionPrice(priceInput);
-        setShowPriceSuccess(true);
-        setTimeout(() => setShowPriceSuccess(false), 2500);
-    };
 
     const handleCompanyInfoSave = (e: React.FormEvent) => {
         e.preventDefault();
@@ -283,71 +268,39 @@ const Settings: React.FC = () => {
                 <h1 className="text-3xl font-bold text-white">Ajustes del Sistema</h1>
             </div>
             
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div className="bg-brand-bg-light rounded-lg shadow-lg border border-gray-700/50 p-6">
-                    <h2 className="text-xl font-bold text-white mb-4">Información de la Empresa</h2>
-                    <form onSubmit={handleCompanyInfoSave} className="space-y-4">
-                        <div>
-                            <label htmlFor="name" className="block text-sm font-medium text-brand-text-dark">Nombre / Razón Social</label>
-                            <input type="text" name="name" id="name" value={companyForm.name} onChange={handleCompanyFormChange} className="mt-1 w-full bg-brand-bg-dark border border-gray-600 rounded-md p-2 focus:ring-brand-orange focus:border-brand-orange" required/>
-                        </div>
-                         <div>
-                            <label htmlFor="taxId" className="block text-sm font-medium text-brand-text-dark">RIF</label>
-                            <input type="text" name="taxId" id="taxId" value={companyForm.taxId} onChange={handleCompanyFormChange} className="mt-1 w-full bg-brand-bg-dark border border-gray-600 rounded-md p-2 focus:ring-brand-orange focus:border-brand-orange" required/>
-                        </div>
-                        <div>
-                            <label htmlFor="address" className="block text-sm font-medium text-brand-text-dark">Dirección Fiscal</label>
-                            <input type="text" name="address" id="address" value={companyForm.address} onChange={handleCompanyFormChange} className="mt-1 w-full bg-brand-bg-dark border border-gray-600 rounded-md p-2 focus:ring-brand-orange focus:border-brand-orange" required/>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                           <div>
-                               <label htmlFor="email" className="block text-sm font-medium text-brand-text-dark">Email de Contacto</label>
-                               <input type="email" name="email" id="email" value={companyForm.email} onChange={handleCompanyFormChange} className="mt-1 w-full bg-brand-bg-dark border border-gray-600 rounded-md p-2 focus:ring-brand-orange focus:border-brand-orange" required/>
-                           </div>
-                           <div>
-                               <label htmlFor="phone" className="block text-sm font-medium text-brand-text-dark">Teléfono de Contacto</label>
-                               <input type="tel" name="phone" id="phone" value={companyForm.phone} onChange={handleCompanyFormChange} className="mt-1 w-full bg-brand-bg-dark border border-gray-600 rounded-md p-2 focus:ring-brand-orange focus:border-brand-orange" required/>
-                           </div>
-                        </div>
-                         <div className="flex items-center gap-4 pt-2">
-                           <button type="submit" className="bg-brand-orange text-white px-4 py-2 rounded-md font-semibold hover:bg-orange-600 transition-colors flex items-center gap-2">
-                               <SaveIcon className="h-4 w-4" />
-                               Guardar Información
-                           </button>
-                           {showCompanySuccess && <p className="text-green-400 text-sm animate-pulseGlow">¡Guardado con éxito!</p>}
-                        </div>
-                    </form>
-                </div>
-                <div className="bg-brand-bg-light rounded-lg shadow-lg border border-gray-700/50 p-6">
-                    <h2 className="text-xl font-bold text-white mb-4">Ajustes Generales</h2>
-                    <form onSubmit={handlePriceSave} className="max-w-md space-y-4">
-                        <div>
-                            <label htmlFor="revisionPrice" className="block text-sm font-medium text-brand-text-dark">Precio de Revisión (COP)</label>
-                            <div className="mt-1 relative rounded-md shadow-sm">
-                                <input
-                                    type="number"
-                                    name="revisionPrice"
-                                    id="revisionPrice"
-                                    className="w-full bg-brand-bg-dark border border-gray-600 rounded-md p-2 focus:ring-brand-orange focus:border-brand-orange"
-                                    value={priceInput}
-                                    onChange={(e) => setPriceInput(Number(e.target.value))}
-                                    min="0"
-                                    required
-                                />
-                            </div>
-                        </div>
-                        <div className="flex items-center gap-4">
-                           <button
-                               type="submit"
-                               className="bg-brand-orange text-white px-4 py-2 rounded-md font-semibold hover:bg-orange-600 transition-colors flex items-center gap-2"
-                           >
-                               <SaveIcon className="h-4 w-4" />
-                               Guardar Precio
-                           </button>
-                           {showPriceSuccess && <p className="text-green-400 text-sm animate-pulseGlow">¡Guardado con éxito!</p>}
-                        </div>
-                    </form>
-                </div>
+            <div className="bg-brand-bg-light rounded-lg shadow-lg border border-gray-700/50 p-6">
+                <h2 className="text-xl font-bold text-white mb-4">Información de la Empresa</h2>
+                <form onSubmit={handleCompanyInfoSave} className="space-y-4">
+                    <div>
+                        <label htmlFor="name" className="block text-sm font-medium text-brand-text-dark">Nombre / Razón Social</label>
+                        <input type="text" name="name" id="name" value={companyForm.name} onChange={handleCompanyFormChange} className="mt-1 w-full bg-brand-bg-dark border border-gray-600 rounded-md p-2 focus:ring-brand-orange focus:border-brand-orange" required/>
+                    </div>
+                     <div>
+                        <label htmlFor="taxId" className="block text-sm font-medium text-brand-text-dark">RIF</label>
+                        <input type="text" name="taxId" id="taxId" value={companyForm.taxId} onChange={handleCompanyFormChange} className="mt-1 w-full bg-brand-bg-dark border border-gray-600 rounded-md p-2 focus:ring-brand-orange focus:border-brand-orange" required/>
+                    </div>
+                    <div>
+                        <label htmlFor="address" className="block text-sm font-medium text-brand-text-dark">Dirección Fiscal</label>
+                        <input type="text" name="address" id="address" value={companyForm.address} onChange={handleCompanyFormChange} className="mt-1 w-full bg-brand-bg-dark border border-gray-600 rounded-md p-2 focus:ring-brand-orange focus:border-brand-orange" required/>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                       <div>
+                           <label htmlFor="email" className="block text-sm font-medium text-brand-text-dark">Email de Contacto</label>
+                           <input type="email" name="email" id="email" value={companyForm.email} onChange={handleCompanyFormChange} className="mt-1 w-full bg-brand-bg-dark border border-gray-600 rounded-md p-2 focus:ring-brand-orange focus:border-brand-orange" required/>
+                       </div>
+                       <div>
+                           <label htmlFor="phone" className="block text-sm font-medium text-brand-text-dark">Teléfono de Contacto</label>
+                           <input type="tel" name="phone" id="phone" value={companyForm.phone} onChange={handleCompanyFormChange} className="mt-1 w-full bg-brand-bg-dark border border-gray-600 rounded-md p-2 focus:ring-brand-orange focus:border-brand-orange" required/>
+                       </div>
+                    </div>
+                     <div className="flex items-center gap-4 pt-2">
+                       <button type="submit" className="bg-brand-orange text-white px-4 py-2 rounded-md font-semibold hover:bg-orange-600 transition-colors flex items-center gap-2">
+                           <SaveIcon className="h-4 w-4" />
+                           Guardar Información
+                       </button>
+                       {showCompanySuccess && <p className="text-green-400 text-sm animate-pulseGlow">¡Guardado con éxito!</p>}
+                    </div>
+                </form>
             </div>
             
             <PermissionsManager />

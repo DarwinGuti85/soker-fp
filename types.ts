@@ -43,6 +43,7 @@ export interface InventoryItem {
 
 export interface ServiceOrder {
   id: string;
+  originalInvoiceNumber?: string;
   client: Client;
   applianceName: string;
   applianceType: string;
@@ -62,12 +63,13 @@ export enum InvoiceStatus {
 }
 
 export interface Invoice {
-  id: string;
-  serviceOrder: ServiceOrder;
+  id: string; // For historical, this will be the original invoice number
+  serviceOrder?: ServiceOrder; // Optional for historical invoices
+  clientName?: string; // For historical invoices
+  applianceDescription?: string; // For historical invoices
   issueDate: string;
   status: InvoiceStatus;
   // Detailed breakdown
-  revisionPrice: number;
   laborCost: number;
   partsTotal: number;
   subtotal: number;

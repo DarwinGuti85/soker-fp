@@ -3,11 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { GoogleGenAI } from "@google/genai";
 import { useData } from '../hooks/useData';
 import { useAuth } from '../hooks/useAuth';
-import { ServiceOrder, ServiceStatus, Client, User, UserRole } from '../types';
+import { ServiceOrder, ServiceStatus, Client, User, UserRole, InvoiceStatus, Invoice } from '../types';
 import { SparklesIcon, UploadIcon, CameraIcon, PlusCircleIcon, CloseIcon, FileIcon } from './ui/icons';
 
 // Initialize the Gemini API client
-const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 const AIServiceCard: React.FC<{
     service: ServiceOrder;
@@ -61,8 +61,8 @@ const AIServiceCard: React.FC<{
     );
 };
 
-const DataExtractor: React.FC = () => {
-    const { clients, addClient, addService, users } = useData();
+const HistoricalInvoiceExtractor: React.FC = () => {
+    const { addHistoricalInvoice } = useData();
     const navigate = useNavigate();
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -72,26 +72,23 @@ const DataExtractor: React.FC = () => {
     const [extractedJson, setExtractedJson] = useState<string | null>(null);
     const [parsedData, setParsedData] = useState<any | null>(null);
     const [error, setError] = useState<string | null>(null);
-    const [isCreatingOrder, setIsCreatingOrder] = useState(false);
+    const [isCreating, setIsCreating] = useState(false);
 
     const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
         const selectedFile = e.target.files?.[0];
         if (selectedFile) {
             setFile(selectedFile);
             const reader = new FileReader();
-            reader.onloadend = () => {
-                setPreview(reader.result as string);
-            };
+            reader.onloadend = () => setPreview(reader.result as string);
             reader.readAsDataURL(selectedFile);
             setExtractedJson(null);
             setParsedData(null);
             setError(null);
         }
     };
-    
+
     const handleExtract = async () => {
         if (!file) return;
-
         setIsExtracting(true);
         setError(null);
         setExtractedJson(null);
@@ -105,101 +102,75 @@ const DataExtractor: React.FC = () => {
         }
 
         const filePart = { inlineData: { mimeType: file.type, data: base64Data } };
-        const fullPrompt = `Actúa como un sistema experto en extracción de datos, especializado en facturas y órdenes de servicio de un taller de reparación de electrodomésticos. Tu tarea principal es analizar el documento proporcionado (que puede ser una imagen o un PDF), extraer la información clave y devolverla en formato JSON.
+        const fullPrompt = `Actúa como un sistema experto en extracción de datos de facturas de un taller de reparaciones. Tu tarea es analizar el documento, extraer la información clave y devolverla en formato JSON.
 
 ### REGLAS DE EXTRACCIÓN:
-1.  **Precisión:** Extrae la información exactamente como aparece en el texto.
-2.  **Campos no encontrados:** Si un campo específico no se encuentra en el documento, utiliza el valor \`null\` para ese campo en el JSON.
-3.  **Fechas:** Intenta normalizar las fechas al formato \`YYYY-MM-DD\`. Si no es posible, mantenla como está en el texto.
-4.  **Números:** Extrae los valores numéricos (costos, cantidades) sin símbolos de moneda o comas de miles. Usa el punto como separador decimal.
-5.  **Incoherencia:** Si el texto es demasiado corto, ilegible o no parece ser una factura de servicio, devuelve un JSON de error: \`{"error": "El documento no es una factura válida o es ilegible."}\`
+1.  **Precisión:** Extrae la información exactamente como aparece.
+2.  **Campos no encontrados:** Usa el valor \`null\` si un campo no se encuentra.
+3.  **Fechas:** Normaliza las fechas a \`YYYY-MM-DD\`.
+4.  **Números:** Extrae el costo total sin símbolos de moneda.
 
 ### ESTRUCTURA JSON REQUERIDA:
 {
-  "numero_factura": "String", "fecha_servicio": "YYYY-MM-DD", "cliente": { "nombre": "String", "telefono": "String", "direccion": "String" }, "electrodomestico": { "tipo": "String", "marca": "String", "modelo": "String", "serial": "String" }, "diagnostico_falla": "String", "repuestos_utilizados": [{ "item": "String", "cantidad": Number, "costo_unitario": Number }], "mano_de_obra": { "descripcion": "String", "costo": Number }, "costo_total": Number, "nombre_tecnico": "String"
+  "numero_factura": "String",
+  "fecha_emision": "YYYY-MM-DD",
+  "cliente_nombre": "String",
+  "descripcion_servicio": "String",
+  "costo_total": Number
 }
 
-Devuelve la información extraída ÚNICAMENTE en formato JSON. No añadas explicaciones ni texto introductorio antes o después del JSON.`;
+Devuelve ÚNICAMENTE el JSON.`;
         
         try {
             const response = await ai.models.generateContent({
                 model: 'gemini-2.5-flash',
                 contents: { parts: [filePart, { text: fullPrompt }] },
             });
-
-            let jsonString = response.text.trim();
-            const jsonMatch = jsonString.match(/```json\n([\s\S]*?)\n```/);
-            if (jsonMatch) jsonString = jsonMatch[1];
-            
+            let jsonString = response.text.trim().replace(/```json/g, '').replace(/```/g, '');
             setExtractedJson(jsonString);
             const parsed = JSON.parse(jsonString);
             if (parsed.error) {
                 setError(parsed.error);
+                setParsedData(null);
+            } else if (!parsed.numero_factura || !parsed.costo_total) {
+                setError("La IA no pudo extraer el número de factura o el costo total, campos que son obligatorios. Intente con una imagen más clara.");
                 setParsedData(null);
             } else {
                 setParsedData(parsed);
             }
         } catch (e) {
             console.error(e);
-            setError("Error al procesar el documento con la IA. El formato de la respuesta no es válido o la API falló. Inténtalo de nuevo.");
+            setError("Error al procesar el documento. El formato de la respuesta no es válido o la API falló.");
         } finally {
             setIsExtracting(false);
         }
     };
 
-    const handleCreateServiceFromExtraction = async () => {
+    const handleCreateInvoice = async () => {
         if (!parsedData) return;
-        setIsCreatingOrder(true);
-        
+        setIsCreating(true);
+
         try {
-            let serviceClient: Client | undefined;
-            const clientInfo = parsedData.cliente;
-
-            if (clientInfo && (clientInfo.nombre || clientInfo.telefono)) {
-                serviceClient = clients.find(c => 
-                    (c.firstName + ' ' + c.lastName === clientInfo.nombre) ||
-                    (clientInfo.telefono && c.whatsapp === clientInfo.telefono)
-                );
-
-                if (!serviceClient) {
-                    const nameParts = clientInfo.nombre?.split(' ') || ['Nuevo', 'Cliente'];
-                    serviceClient = addClient({
-                        firstName: nameParts[0],
-                        lastName: nameParts.slice(1).join(' '),
-                        whatsapp: clientInfo.telefono || '',
-                        email: '',
-                        address: clientInfo.direccion || '',
-                    });
-                }
-            }
-
-            if (!serviceClient) throw new Error("No se pudo identificar o crear el cliente desde el documento.");
-            
-            let serviceTechnician: User | undefined;
-            if (parsedData.nombre_tecnico) {
-                const techNameLower = parsedData.nombre_tecnico.toLowerCase();
-                serviceTechnician = users.find(u => u.role === UserRole.TECHNICIAN && `${u.firstName} ${u.lastName}`.toLowerCase().includes(techNameLower));
-            }
-
-            const newServiceOrderData: Omit<ServiceOrder, 'id'|'createdAt'|'updatedAt'> = {
-                client: serviceClient,
-                applianceName: parsedData.electrodomestico?.tipo || 'No especificado',
-                applianceType: `${parsedData.electrodomestico?.marca || ''} ${parsedData.electrodomestico?.modelo || ''}`.trim(),
-                clientDescription: parsedData.diagnostico_falla || 'Ver documento adjunto.',
-                technicianNotes: `Datos extraídos de la orden #${parsedData.numero_factura || 'N/A'}.`,
-                status: ServiceStatus.PENDING,
-                technician: serviceTechnician,
+            const newInvoiceData: Omit<Invoice, 'id'> & { id: string } = {
+                id: parsedData.numero_factura,
+                issueDate: parsedData.fecha_emision || new Date().toISOString(),
+                status: InvoiceStatus.PAID,
+                clientName: parsedData.cliente_nombre || 'N/A',
+                applianceDescription: parsedData.descripcion_servicio || 'N/A',
+                totalAmount: parsedData.costo_total || 0,
+                laborCost: 0,
+                partsTotal: 0,
+                subtotal: parsedData.costo_total || 0,
+                taxAmount: 0,
             };
-            
-            addService(newServiceOrderData);
-            alert('¡Orden de servicio creada exitosamente!');
-            navigate('/services');
-
-        } catch (e) {
+            addHistoricalInvoice(newInvoiceData);
+            alert(`Factura histórica #${parsedData.numero_factura} registrada con éxito.`);
+            navigate('/billing');
+        } catch(e) {
+            // Error is alerted in the useData hook.
             console.error(e);
-            alert(`Error al crear la orden de servicio: ${e instanceof Error ? e.message : String(e)}`);
         } finally {
-            setIsCreatingOrder(false);
+            setIsCreating(false);
         }
     };
 
@@ -207,48 +178,30 @@ Devuelve la información extraída ÚNICAMENTE en formato JSON. No añadas expli
 
     return (
         <div>
-            <p className="text-brand-text-dark mb-6">Sube una imagen o PDF de una orden de servicio para extraer la información y crear una nueva orden de trabajo automáticamente.</p>
-            
+            <p className="text-brand-text-dark mb-6">Sube una factura antigua (imagen o PDF) para registrarla directamente en el sistema. La IA extraerá los datos y creará un registro de factura finalizado.</p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="space-y-4">
-                    <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*,application/pdf" className="hidden" />
+                     <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*,application/pdf" className="hidden" />
                     {!preview ? (
-                        <div 
-                            onClick={() => fileInputRef.current?.click()}
-                            className="border-2 border-dashed border-gray-600 rounded-lg p-12 text-center cursor-pointer hover:border-brand-orange hover:bg-brand-bg-dark/50 transition-colors flex flex-col items-center justify-center h-64"
-                        >
+                        <div onClick={() => fileInputRef.current?.click()} className="border-2 border-dashed border-gray-600 rounded-lg p-12 text-center cursor-pointer hover:border-brand-orange hover:bg-brand-bg-dark/50 transition-colors flex flex-col items-center justify-center h-64">
                             <UploadIcon className="h-12 w-12 text-gray-500 mb-4" />
-                            <p className="text-brand-text">Arrastra o haz clic para subir</p>
-                            <p className="text-sm text-brand-text-dark">Sube una imagen o PDF del documento</p>
+                            <p className="text-brand-text">Cargar Factura Histórica</p>
+                            <p className="text-sm text-brand-text-dark">Sube una imagen o PDF</p>
                         </div>
                     ) : (
-                        <div className="relative group">
+                         <div className="relative group">
                             {isPdf ? (
-                                <div className="rounded-lg w-full h-64 bg-brand-bg-dark flex flex-col items-center justify-center text-brand-text-dark p-4">
-                                    <FileIcon className="h-16 w-16 mb-4" />
-                                    <p className="font-semibold text-brand-text text-center break-all">{file?.name}</p>
-                                    <p className="text-xs mt-1">Documento PDF</p>
-                                </div>
+                                <div className="rounded-lg w-full h-64 bg-brand-bg-dark flex flex-col items-center justify-center text-brand-text-dark p-4"><FileIcon className="h-16 w-16 mb-4" /><p className="font-semibold text-brand-text text-center break-all">{file?.name}</p><p className="text-xs mt-1">Documento PDF</p></div>
                             ) : (
                                 <img src={preview} alt="Vista Previa" className="rounded-lg w-full h-64 object-contain bg-brand-bg-dark" />
                             )}
-                             <div 
-                                onClick={() => { setFile(null); setPreview(null); }}
-                                className="absolute top-2 right-2 bg-black/50 text-white rounded-full p-2 cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity"
-                             >
-                                <CloseIcon className="h-5 w-5"/>
-                             </div>
+                            <div onClick={() => { setFile(null); setPreview(null); }} className="absolute top-2 right-2 bg-black/50 text-white rounded-full p-2 cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity"><CloseIcon className="h-5 w-5"/></div>
                         </div>
                     )}
                     <button onClick={handleExtract} disabled={!file || isExtracting} className="w-full bg-brand-orange text-white px-4 py-3 rounded-md font-semibold hover:bg-orange-600 transition-colors flex items-center justify-center gap-2 disabled:bg-orange-900/70 disabled:cursor-not-allowed text-lg">
-                        {isExtracting ? (
-                            <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                        ) : (
-                            <><SparklesIcon className="h-6 w-6" /><span>Extraer Información</span></>
-                        )}
+                        {isExtracting ? <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div> : <><SparklesIcon className="h-6 w-6" /><span>Extraer Datos de Factura</span></>}
                     </button>
                 </div>
-
                 <div className="bg-brand-bg-dark/50 rounded-lg p-4 h-[21rem] flex flex-col">
                     <h3 className="text-lg font-bold text-white mb-2">Resultados de la Extracción</h3>
                     <div className="flex-grow bg-black/30 rounded-md p-3 overflow-auto font-mono text-xs text-white relative">
@@ -258,19 +211,16 @@ Devuelve la información extraída ÚNICAMENTE en formato JSON. No añadas expli
                         {!isExtracting && !error && !extractedJson && <p className="text-brand-text-dark italic">Los datos extraídos aparecerán aquí.</p>}
                     </div>
                      {parsedData && (
-                        <button onClick={handleCreateServiceFromExtraction} disabled={isCreatingOrder} className="mt-4 w-full bg-green-600 text-white px-4 py-2 rounded-md font-semibold hover:bg-green-500 transition-colors flex items-center justify-center gap-2 disabled:bg-green-800 disabled:cursor-not-allowed">
-                             {isCreatingOrder ? (
-                                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                            ) : (
-                                <><PlusCircleIcon className="h-5 w-5" /><span>Crear Orden de Servicio</span></>
-                            )}
+                        <button onClick={handleCreateInvoice} disabled={isCreating} className="mt-4 w-full bg-green-600 text-white px-4 py-2 rounded-md font-semibold hover:bg-green-500 transition-colors flex items-center justify-center gap-2 disabled:bg-green-800 disabled:cursor-not-allowed">
+                             {isCreating ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div> : <><PlusCircleIcon className="h-5 w-5" /><span>Registrar Factura Histórica</span></>}
                         </button>
                     )}
                 </div>
             </div>
         </div>
     );
-}
+};
+
 
 const AIModule: React.FC = () => {
     const { services, updateService, companyInfo } = useData();
@@ -281,7 +231,7 @@ const AIModule: React.FC = () => {
         ready: false,
         reminder: false,
     });
-    const [activeTab, setActiveTab] = useState<'notifications' | 'extractor'>('notifications');
+    const [activeTab, setActiveTab] = useState<'notifications' | 'historical_invoice'>('notifications');
 
 
     const toggleColumnExpansion = (column: keyof typeof expandedColumns) => {
@@ -381,6 +331,22 @@ const AIModule: React.FC = () => {
     const displayedPendingBudgetServices = expandedColumns.budget ? pendingBudgetServices : pendingBudgetServices.slice(0, 5);
     const displayedReadyForPickupServices = expandedColumns.ready ? readyForPickupServices : readyForPickupServices.slice(0, 5);
     const displayedNeedsReminderServices = expandedColumns.reminder ? needsReminderServices : needsReminderServices.slice(0, 5);
+    
+    const TabButton: React.FC<{
+        tabId: typeof activeTab;
+        children: React.ReactNode;
+    }> = ({ tabId, children }) => (
+         <button
+            onClick={() => setActiveTab(tabId)}
+            className={`px-3 py-3 font-semibold text-base border-b-2 transition-colors duration-300 ${
+                activeTab === tabId
+                    ? 'border-brand-orange text-brand-orange'
+                    : 'border-transparent text-brand-text-dark hover:text-white'
+            }`}
+        >
+            {children}
+        </button>
+    );
 
     return (
         <div className="space-y-8">
@@ -394,26 +360,8 @@ const AIModule: React.FC = () => {
             
             <div className="border-b border-gray-700">
                 <nav className="-mb-px flex space-x-6" aria-label="Tabs">
-                    <button
-                        onClick={() => setActiveTab('notifications')}
-                        className={`px-1 py-3 font-semibold text-base border-b-2 transition-colors duration-300 ${
-                            activeTab === 'notifications'
-                                ? 'border-brand-orange text-brand-orange'
-                                : 'border-transparent text-brand-text-dark hover:text-white'
-                        }`}
-                    >
-                        Notificaciones a Clientes
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('extractor')}
-                        className={`px-1 py-3 font-semibold text-base border-b-2 transition-colors duration-300 ${
-                            activeTab === 'extractor'
-                                ? 'border-brand-orange text-brand-orange'
-                                : 'border-transparent text-brand-text-dark hover:text-white'
-                        }`}
-                    >
-                        Extractor de Documentos
-                    </button>
+                    <TabButton tabId="notifications">Notificaciones a Clientes</TabButton>
+                    <TabButton tabId="historical_invoice">Registrar Factura Histórica</TabButton>
                 </nav>
             </div>
 
@@ -498,9 +446,9 @@ const AIModule: React.FC = () => {
                         </div>
                      </div>
                 )}
-                {activeTab === 'extractor' && (
+                {activeTab === 'historical_invoice' && (
                     <div className="animate-fadeInUp" style={{animationDuration: '400ms'}}>
-                        <DataExtractor />
+                        <HistoricalInvoiceExtractor />
                     </div>
                 )}
             </div>

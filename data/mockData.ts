@@ -108,13 +108,13 @@ export const MOCK_INVENTORY: InventoryItem[] = [...baseInventory, ...generatedIn
 
 const baseServices: ServiceOrder[] = [
   {
-    id: 'service-1', client: MOCK_CLIENTS[0], applianceName: 'Refrigerador', applianceType: 'Samsung RF28HFE', clientDescription: 'No enfría correctamente. El compresor parece funcionar constantemente.', technicianNotes: 'Revisado el compresor, se detecta fuga de gas. Se necesita recarga y sellado.', status: ServiceStatus.IN_PROGRESS, technician: MOCK_USERS[2], createdAt: '2024-05-10T10:00:00Z', updatedAt: '2024-05-11T14:30:00Z'
+    id: 'service-1', originalInvoiceNumber: '001523', client: MOCK_CLIENTS[0], applianceName: 'Refrigerador', applianceType: 'Samsung RF28HFE', clientDescription: 'No enfría correctamente. El compresor parece funcionar constantemente.', technicianNotes: 'Revisado el compresor, se detecta fuga de gas. Se necesita recarga y sellado.', status: ServiceStatus.IN_PROGRESS, technician: MOCK_USERS[2], createdAt: '2024-05-10T10:00:00Z', updatedAt: '2024-05-11T14:30:00Z'
   },
   {
     id: 'service-2', client: MOCK_CLIENTS[1], applianceName: 'Lavadora', applianceType: 'LG WM3700HWA', clientDescription: 'Fuga de agua por la parte inferior durante el ciclo de centrifugado.', technicianNotes: 'Pendiente de revisión inicial.', status: ServiceStatus.PENDING, createdAt: '2024-05-12T11:00:00Z', updatedAt: '2024-05-12T11:00:00Z'
   },
   {
-    id: 'service-3', client: MOCK_CLIENTS[2], applianceName: 'Horno', applianceType: 'GE Profile', clientDescription: 'La resistencia de calentamiento no funciona.', technicianNotes: 'Se reemplazó la resistencia (parte GE-HEATER-789). El equipo funciona correctamente.', status: ServiceStatus.COMPLETED, technician: MOCK_USERS[2], createdAt: '2024-04-20T09:00:00Z', updatedAt: '2024-04-22T16:00:00Z', partsUsed: [MOCK_INVENTORY[2]]
+    id: 'service-3', originalInvoiceNumber: '001499', client: MOCK_CLIENTS[2], applianceName: 'Horno', applianceType: 'GE Profile', clientDescription: 'La resistencia de calentamiento no funciona.', technicianNotes: 'Se reemplazó la resistencia (parte GE-HEATER-789). El equipo funciona correctamente.', status: ServiceStatus.COMPLETED, technician: MOCK_USERS[2], createdAt: '2024-04-20T09:00:00Z', updatedAt: '2024-04-22T16:00:00Z', partsUsed: [MOCK_INVENTORY[2]]
   },
   {
     id: 'service-4', client: MOCK_CLIENTS[3], applianceName: 'Lavavajillas', applianceType: 'Bosch 300 Series', clientDescription: 'Código de error E24. Posible problema de drenaje.', technicianNotes: 'Se necesita la bomba de drenaje. Pedido realizado, en espera de la pieza.', status: ServiceStatus.AWAITING_PARTS, technician: MOCK_USERS[3], createdAt: '2024-05-01T15:00:00Z', updatedAt: '2024-05-02T10:00:00Z'
@@ -182,10 +182,9 @@ export const MOCK_INVOICES: Invoice[] = completedServices.slice(0, 45).map((serv
     const isPaid = Math.random() > 0.3; // 70% chance of being paid
     const issueDate = new Date(service.updatedAt);
 
-    const revisionPrice = 50000;
     const laborCost = getRandomInt(80000, 250000);
     const partsTotal = service.partsUsed?.reduce((sum, part) => sum + part.price, 0) || 0;
-    const subtotal = revisionPrice + laborCost + partsTotal;
+    const subtotal = laborCost + partsTotal;
     const taxAmount = subtotal * 0.16;
     const totalAmount = subtotal + taxAmount;
     
@@ -194,7 +193,6 @@ export const MOCK_INVOICES: Invoice[] = completedServices.slice(0, 45).map((serv
         serviceOrder: service,
         issueDate: issueDate.toISOString(),
         status: isPaid ? InvoiceStatus.PAID : InvoiceStatus.UNPAID,
-        revisionPrice,
         laborCost,
         partsTotal,
         subtotal,
