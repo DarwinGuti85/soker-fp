@@ -12,6 +12,7 @@ import AIModule from './components/AIModule';
 import { useAuth } from './hooks/useAuth';
 import { UserRole, Module, PermissionSet } from './types';
 import Login from './components/Login';
+import Chatbot from './components/Chatbot';
 
 const ProtectedRoute: React.FC<{ 
   children: React.ReactNode, 
@@ -131,6 +132,7 @@ const MainLayout: React.FC = () => (
         </div>
       </main>
     </div>
+    <Chatbot />
   </div>
 );
 

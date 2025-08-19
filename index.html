@@ -29,10 +29,20 @@
                 '0%, 100%': { opacity: '0.7', transform: 'scale(1)' },
                 '50%': { opacity: '1', transform: 'scale(1.05)' },
               },
+              slideIn: {
+                '0%': { opacity: '0', transform: 'translateY(50px) scale(0.95)' },
+                '100%': { opacity: '1', transform: 'translateY(0) scale(1)' },
+              },
+              slideOut: {
+                '0%': { opacity: '1', transform: 'translateY(0) scale(1)' },
+                '100%': { opacity: '0', transform: 'translateY(50px) scale(0.95)' },
+              }
             },
             animation: {
               fadeInUp: 'fadeInUp 0.6s ease-out forwards',
               pulseGlow: 'pulseGlow 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+              slideIn: 'slideIn 0.3s ease-out forwards',
+              slideOut: 'slideOut 0.3s ease-in forwards',
             },
           },
         },
@@ -190,6 +200,97 @@
           color: #fff6a9;
         }
       }
+
+      /* Chatbot Styles */
+      .chat-bubble {
+        position: fixed;
+        bottom: 2rem;
+        right: 2rem;
+        width: 60px;
+        height: 60px;
+        background-color: #FF5B22;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 15px rgba(255, 91, 34, 0.4);
+        cursor: pointer;
+        z-index: 1000;
+        transition: transform 0.2s ease-out;
+        animation: pulseGlow 3s infinite;
+      }
+      .chat-bubble:hover {
+        transform: scale(1.1);
+      }
+      .chat-panel {
+        position: fixed;
+        bottom: 6.5rem;
+        right: 2rem;
+        width: 90%;
+        max-width: 400px;
+        height: 70vh;
+        max-height: 600px;
+        background-color: #1A1A1A;
+        border: 1px solid #333;
+        border-radius: 16px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        z-index: 1000;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        transform-origin: bottom right;
+      }
+      .chat-panel-hidden {
+        display: none;
+      }
+      .chat-messages {
+        flex-grow: 1;
+        padding: 1rem;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+      }
+      .message {
+        padding: 0.75rem 1rem;
+        border-radius: 12px;
+        max-width: 85%;
+        word-wrap: break-word;
+      }
+      .message-user {
+        background-color: #FF5B22;
+        color: white;
+        align-self: flex-end;
+        border-bottom-right-radius: 4px;
+      }
+      .message-ai {
+        background-color: #2c2c2e;
+        color: #E0E0E0;
+        align-self: flex-start;
+        border-bottom-left-radius: 4px;
+      }
+      .message-ai p { margin-bottom: 0.5rem; }
+      .message-ai ul, .message-ai ol { margin-left: 1.25rem; margin-bottom: 0.5rem; }
+      .message-ai li { margin-bottom: 0.25rem; }
+      .typing-indicator {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+      .typing-indicator span {
+        width: 8px;
+        height: 8px;
+        background-color: #A0A0A0;
+        border-radius: 50%;
+        animation: typing-bounce 1.2s infinite ease-in-out;
+      }
+      .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+      .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+
+      @keyframes typing-bounce {
+        0%, 80%, 100% { transform: scale(0); }
+        40% { transform: scale(1.0); }
+      }
     </style>
   <script type="importmap">
 {
@@ -199,7 +300,8 @@
     "react/": "https://esm.sh/react@^19.1.1/",
     "react": "https://esm.sh/react@^19.1.1",
     "react-router-dom": "https://esm.sh/react-router-dom@^7.7.1",
-    "@google/genai": "https://esm.sh/@google/genai@^1.13.0"
+    "@google/genai": "https://esm.sh/@google/genai@^1.13.0",
+    "marked": "https://esm.sh/marked@^14.0.0"
   }
 }
 </script>
