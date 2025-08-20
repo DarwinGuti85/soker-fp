@@ -7,7 +7,7 @@ import { useAuth } from '../hooks/useAuth';
 import { ServiceOrder, ServiceStatus, Client, User, UserRole, InvoiceStatus, Invoice } from '../types';
 import { SparklesIcon, UploadIcon, CameraIcon, PlusCircleIcon, CloseIcon, FileIcon } from './ui/icons';
 
-// Initialize the Gemini API client
+// Initialize the Gemini API cliente mmgbo
 const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
 
 const AIServiceCard: React.FC<{
