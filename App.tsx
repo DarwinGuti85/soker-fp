@@ -162,5 +162,3 @@ const App: React.FC = () => {
 };
 
 export default App;
-
-// Initialize the Gemini API client
