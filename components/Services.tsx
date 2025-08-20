@@ -14,16 +14,16 @@ const ServiceCard: React.FC<{ service: ServiceOrder; onDetailsClick: () => void 
     <button 
       onClick={onDetailsClick} 
       className={`
-        w-full text-left bg-brand-bg-light border-l-4 ${statusColorClass} 
-        p-4 rounded-lg shadow-lg hover:shadow-brand-orange/20 
+        w-full text-left bg-brand-orange/10 dark:bg-brand-bg-light border-l-4 ${statusColorClass} 
+        p-4 rounded-lg shadow-md dark:shadow-lg hover:shadow-brand-orange/20 dark:border-transparent border
         transform hover:-translate-y-1 transition-all duration-300 
         cursor-pointer group space-y-3 animate-fadeInUp
       `}
       style={{ animationDelay: `${Math.random() * 0.2}s` }}
     >
       <div className="flex justify-between items-start gap-4">
-        <h3 className="font-bold text-brand-text group-hover:text-brand-orange transition-colors duration-300 flex items-baseline min-w-0">
-          <span className="font-mono text-xs text-brand-text-dark/80 mr-2 shrink-0">#{service.originalInvoiceNumber || service.id}</span>
+        <h3 className="font-bold text-gray-900 dark:text-brand-text group-hover:text-brand-orange transition-colors duration-300 flex items-baseline min-w-0">
+          <span className="font-mono text-xs text-gray-500 dark:text-brand-text-dark/80 mr-2 shrink-0">#{service.originalInvoiceNumber || service.id}</span>
           <span className="truncate">{service.applianceName}</span>
         </h3>
         <span className={`px-2 py-0.5 text-xs font-semibold rounded-full ${STATUS_COLORS[service.status]} transition-opacity duration-300 shrink-0`}>
@@ -31,10 +31,10 @@ const ServiceCard: React.FC<{ service: ServiceOrder; onDetailsClick: () => void 
         </span>
       </div>
       <div>
-        <p className="text-sm text-brand-text-dark">{`${service.client.firstName} ${service.client.lastName}`}</p>
+        <p className="text-sm text-gray-600 dark:text-brand-text-dark">{`${service.client.firstName} ${service.client.lastName}`}</p>
         <p className="text-xs text-gray-500">{service.applianceType}</p>
       </div>
-      <div className="text-xs text-brand-text-dark pt-2 border-t border-gray-700/50">
+      <div className="text-xs text-gray-600 dark:text-brand-text-dark pt-2 border-t border-brand-orange/20 dark:border-gray-700/50">
         <p><strong>Técnico:</strong> {service.technician ? `${service.technician.firstName} ${service.technician.lastName}`: 'Sin Asignar'}</p>
         <p><strong>Ingreso:</strong> {new Date(service.createdAt).toLocaleDateString('es-ES')}</p>
       </div>
@@ -130,7 +130,7 @@ const DetailsModalContent: React.FC<{ serviceId: string, onClose: () => void }> 
     };
 
     const isCompleted = currentService.status === ServiceStatus.COMPLETED;
-    const existingInvoice = invoices.find(inv => inv.serviceOrder.id === currentService.id);
+    const existingInvoice = invoices.find(inv => inv.serviceOrder?.id === currentService.id);
 
     return (
         <div className="fixed inset-0 bg-black/70 z-50 flex justify-center items-center p-4" aria-modal="true" role="dialog">
@@ -305,12 +305,12 @@ const FilterButton: React.FC<{
 }> = ({ status, label, isActive, onClick, count }) => {
   const baseClasses = "px-4 py-2 rounded-full text-sm font-semibold transition-all duration-300 flex items-center gap-2";
   const activeClasses = "bg-brand-orange text-white shadow-md";
-  const inactiveClasses = "bg-brand-bg-light text-brand-text-dark hover:bg-gray-700 hover:text-white";
+  const inactiveClasses = "bg-gray-200 dark:bg-brand-bg-light text-gray-700 dark:text-brand-text-dark hover:bg-gray-300 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white";
 
   return (
     <button onClick={onClick} className={`${baseClasses} ${isActive ? activeClasses : inactiveClasses}`}>
       {label}
-      <span className={`px-2 py-0.5 rounded-full text-xs ${isActive ? 'bg-white/20' : 'bg-brand-bg-dark'}`}>
+      <span className={`px-2 py-0.5 rounded-full text-xs ${isActive ? 'bg-white/20' : 'bg-gray-300 dark:bg-brand-bg-dark'}`}>
         {count}
       </span>
     </button>
@@ -572,8 +572,8 @@ const Services: React.FC = () => {
 
       <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-white">Órdenes de Servicio</h1>
-          <p className="text-brand-text-dark mt-1">Filtra y gestiona las órdenes de trabajo.</p>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Órdenes de Servicio</h1>
+          <p className="text-gray-600 dark:text-brand-text-dark mt-1">Filtra y gestiona las órdenes de trabajo.</p>
         </div>
         {hasPermission('services', 'edit') && (
         <button 
@@ -586,7 +586,7 @@ const Services: React.FC = () => {
       </div>
       
       {/* Filters */}
-      <div className="bg-brand-bg-dark/50 p-3 rounded-xl backdrop-blur-sm border border-gray-800 space-y-4">
+      <div className="bg-brand-orange/10 dark:bg-brand-bg-dark/50 p-3 rounded-xl backdrop-blur-sm border border-brand-orange/30 dark:border-gray-800 space-y-4">
         <div className="flex items-center gap-2 overflow-x-auto pb-2">
             <FilterButton 
               status="ALL" 
@@ -612,7 +612,7 @@ const Services: React.FC = () => {
             placeholder="Buscar por artefacto, cliente, ID..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-brand-bg-light border border-gray-700 rounded-md p-2.5 text-brand-text focus:ring-brand-orange focus:border-brand-orange transition-colors"
+            className="w-full bg-white dark:bg-brand-bg-light border border-gray-300 dark:border-gray-700 rounded-md p-2.5 text-gray-900 dark:text-brand-text focus:ring-brand-orange focus:border-brand-orange transition-colors"
           />
         </div>
       </div>
@@ -626,28 +626,28 @@ const Services: React.FC = () => {
       
       {filteredServices.length === 0 && (
          <div className="text-center py-16">
-            <p className="text-lg text-brand-text-dark">No se encontraron órdenes de servicio.</p>
+            <p className="text-lg text-gray-600 dark:text-brand-text-dark">No se encontraron órdenes de servicio.</p>
             <p className="text-sm text-gray-500">Intenta cambiar los filtros o el término de búsqueda.</p>
         </div>
       )}
 
       {pageCount > 1 && (
-        <div className="px-6 py-4 flex items-center justify-between border-t border-gray-700">
-            <span className="text-sm text-brand-text-dark">
+        <div className="px-6 py-4 flex items-center justify-between border-t border-gray-200 dark:border-gray-700">
+            <span className="text-sm text-gray-600 dark:text-brand-text-dark">
                 Página {currentPage} de {pageCount} ({filteredServices.length} resultados)
             </span>
             <div className="flex items-center space-x-2">
                 <button
                     onClick={() => paginate(currentPage - 1)}
                     disabled={currentPage === 1}
-                    className="px-3 py-1 rounded-md bg-brand-bg-dark text-sm font-semibold text-brand-text enabled:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-3 py-1 rounded-md bg-gray-200 dark:bg-brand-bg-dark text-sm font-semibold text-gray-800 dark:text-brand-text enabled:hover:bg-gray-300 dark:enabled:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                     Anterior
                 </button>
                 <button
                     onClick={() => paginate(currentPage + 1)}
                     disabled={currentPage === pageCount}
-                    className="px-3 py-1 rounded-md bg-brand-bg-dark text-sm font-semibold text-brand-text enabled:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-3 py-1 rounded-md bg-gray-200 dark:bg-brand-bg-dark text-sm font-semibold text-gray-800 dark:text-brand-text enabled:hover:bg-gray-300 dark:enabled:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                     Siguiente
                 </button>

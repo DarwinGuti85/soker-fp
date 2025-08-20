@@ -3,24 +3,25 @@ import React from 'react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, PieChart, Pie, Cell, Legend, AreaChart, Area } from 'recharts';
 import { ServiceStatus, InvoiceStatus } from '../types';
 import { useData } from '../hooks/useData';
+import { useTheme } from '../hooks/useTheme';
 import { INVOICE_STATUS_LABELS_ES, INVOICE_STATUSES, INVOICE_STATUS_HEX_COLORS } from '../constants';
 import { BanknotesIcon, ServicesIcon, CheckCircleIcon, ClientsIcon, ClockIcon } from './ui/icons';
 
 const KPI_Card: React.FC<{ title: string; value: string | number; icon: React.ReactNode; colorClass: string }> = ({ title, value, icon, colorClass }) => (
-  <div className="bg-brand-bg-light p-5 rounded-lg shadow-lg border border-gray-700/50 flex flex-col justify-between animate-fadeInUp">
+  <div className="bg-brand-orange/10 dark:bg-brand-bg-light p-5 rounded-lg shadow-md dark:shadow-lg border border-brand-orange/30 dark:border-gray-700/50 flex flex-col justify-between animate-fadeInUp">
     <div className="flex justify-between items-center">
-      <h3 className="text-sm font-semibold text-brand-text-dark uppercase tracking-wider">{title}</h3>
+      <h3 className="text-sm font-semibold text-gray-500 dark:text-brand-text-dark uppercase tracking-wider">{title}</h3>
       <div className={`p-2 rounded-lg ${colorClass.replace('text-', 'bg-')}/20`}>
         {React.isValidElement(icon) ? React.cloneElement(icon as React.ReactElement<any>, { className: `h-6 w-6 ${colorClass}` }) : icon}
       </div>
     </div>
-    <p className="text-3xl font-bold text-white mt-2">{value}</p>
+    <p className="text-3xl font-bold text-gray-900 dark:text-white mt-2">{value}</p>
   </div>
 );
 
 const ChartPanel: React.FC<{ title: string; children: React.ReactNode; className?: string }> = ({ title, children, className }) => (
-  <div className={`bg-brand-bg-light p-6 rounded-lg shadow-lg border border-gray-700/50 animate-fadeInUp ${className}`}>
-    <h2 className="text-xl font-bold text-white mb-4">{title}</h2>
+  <div className={`bg-brand-orange/10 dark:bg-brand-bg-light p-6 rounded-lg shadow-md dark:shadow-lg border border-brand-orange/30 dark:border-gray-700/50 animate-fadeInUp ${className}`}>
+    <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">{title}</h2>
     <div className="h-72">
       {children}
     </div>
@@ -30,8 +31,8 @@ const ChartPanel: React.FC<{ title: string; children: React.ReactNode; className
 const CustomTooltip: React.FC<any> = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-brand-bg-dark/80 backdrop-blur-sm p-3 rounded-md border border-gray-600">
-          <p className="label text-white font-bold">{`${label}`}</p>
+        <div className="bg-white/80 dark:bg-brand-bg-dark/80 backdrop-blur-sm p-3 rounded-md border border-gray-300 dark:border-gray-600">
+          <p className="label text-gray-900 dark:text-white font-bold">{`${label}`}</p>
           {payload.map((p: any, index: number) => (
              <p key={index} style={{ color: p.color || p.fill }}>{`${p.name}: ${p.dataKey === 'Ingresos' ? new Intl.NumberFormat('es-VE', {style: 'currency', currency: 'VES', minimumFractionDigits: 0}).format(p.value) : p.value.toLocaleString('es-VE')}`}</p>
           ))}
@@ -42,21 +43,26 @@ const CustomTooltip: React.FC<any> = ({ active, payload, label }) => {
   };
 
 const RADIAN = Math.PI / 180;
-const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }: any) => {
-  if (percent < 0.05) return null;
-  const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
-  const x = cx + radius * Math.cos(-midAngle * RADIAN);
-  const y = cy + radius * Math.sin(-midAngle * RADIAN);
-
-  return (
-    <text x={x} y={y} fill="white" textAnchor="middle" dominantBaseline="central" className="text-xs font-bold pointer-events-none">
-      {`${(percent * 100).toFixed(0)}%`}
-    </text>
-  );
-};
 
 const Dashboard: React.FC = () => {
   const { services, clients, invoices } = useData();
+  const { theme } = useTheme();
+
+  const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }: any) => {
+    if (percent < 0.05) return null;
+    const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+    const x = cx + radius * Math.cos(-midAngle * RADIAN);
+    const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+    return (
+      <text x={x} y={y} fill={theme === 'dark' ? 'white' : '#333'} textAnchor="middle" dominantBaseline="central" className="text-xs font-bold pointer-events-none">
+        {`${(percent * 100).toFixed(0)}%`}
+      </text>
+    );
+  };
+
+  const axisColor = theme === 'dark' ? '#A0A0A0' : '#6B7280';
+  const gridColor = theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)';
 
   // --- Data Processing ---
   const now = new Date();
@@ -151,8 +157,8 @@ const Dashboard: React.FC = () => {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold text-white tracking-tight">Dashboard de Ventas</h1>
-        <p className="text-brand-text-dark mt-1">Vista general de los indicadores más importantes.</p>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">Dashboard de Ventas</h1>
+        <p className="text-gray-500 dark:text-brand-text-dark mt-1">Vista general de los indicadores más importantes.</p>
       </div>
       
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
@@ -192,9 +198,9 @@ const Dashboard: React.FC = () => {
         <ChartPanel title="Ingresos Mensuales (Últimos 6 Meses)" className="lg:col-span-1">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={monthlyIncomeData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.1)" />
-              <XAxis dataKey="name" stroke="#A0A0A0" tick={{ fill: '#A0A0A0', fontSize: 12 }} />
-              <YAxis stroke="#A0A0A0" tick={{ fill: '#A0A0A0', fontSize: 12 }} tickFormatter={(value) => new Intl.NumberFormat('es-VE', { notation: 'compact', compactDisplay: 'short' }).format(value as number)} />
+              <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
+              <XAxis dataKey="name" stroke={axisColor} tick={{ fill: axisColor, fontSize: 12 }} />
+              <YAxis stroke={axisColor} tick={{ fill: axisColor, fontSize: 12 }} tickFormatter={(value) => new Intl.NumberFormat('es-VE', { notation: 'compact', compactDisplay: 'short' }).format(value as number)} />
               <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255, 91, 34, 0.1)' }} />
               <Bar dataKey="Ingresos" fill="#FF5B22" radius={[4, 4, 0, 0]} />
             </BarChart>
@@ -208,7 +214,7 @@ const Dashboard: React.FC = () => {
                 {invoiceStatusChartData.map((entry) => <Cell key={`cell-${entry.name}`} fill={entry.color} />)}
               </Pie>
               <Tooltip content={<CustomTooltip />} />
-              <Legend iconSize={10} wrapperStyle={{fontSize: "12px", paddingTop: "20px"}}/>
+              <Legend iconSize={10} wrapperStyle={{fontSize: "12px", paddingTop: "20px", color: axisColor}}/>
             </PieChart>
           </ResponsiveContainer>
         </ChartPanel>
@@ -216,9 +222,9 @@ const Dashboard: React.FC = () => {
         <ChartPanel title="Top 7 Tipos de Artefacto" className="lg:col-span-1">
            <ResponsiveContainer width="100%" height="100%">
             <BarChart data={applianceChartData} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.1)" />
-              <XAxis type="number" stroke="#A0A0A0" tick={{ fill: '#A0A0A0', fontSize: 12 }} allowDecimals={false} />
-              <YAxis type="category" dataKey="name" stroke="#A0A0A0" width={90} tick={{ fill: '#A0A0A0', fontSize: 12 }} tickLine={false} axisLine={false} interval={0} />
+              <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
+              <XAxis type="number" stroke={axisColor} tick={{ fill: axisColor, fontSize: 12 }} allowDecimals={false} />
+              <YAxis type="category" dataKey="name" stroke={axisColor} width={90} tick={{ fill: axisColor, fontSize: 12 }} tickLine={false} axisLine={false} interval={0} />
               <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255, 91, 34, 0.1)' }} />
               <Bar dataKey="servicios" name="Servicios" fill="#3b82f6" radius={[0, 4, 4, 0]} barSize={15} />
             </BarChart>
@@ -234,9 +240,9 @@ const Dashboard: React.FC = () => {
                       <stop offset="95%" stopColor="#FF5B22" stopOpacity={0}/>
                   </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.1)" />
-              <XAxis dataKey="name" stroke="#A0A0A0" tick={{ fill: '#A0A0A0', fontSize: 12 }} />
-              <YAxis stroke="#A0A0A0" tick={{ fill: '#A0A0A0', fontSize: 12 }} allowDecimals={false} />
+              <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
+              <XAxis dataKey="name" stroke={axisColor} tick={{ fill: axisColor, fontSize: 12 }} />
+              <YAxis stroke={axisColor} tick={{ fill: axisColor, fontSize: 12 }} allowDecimals={false} />
               <Tooltip content={<CustomTooltip />} />
               <Area type="monotone" dataKey="servicios" name="Servicios" stroke="#FF5B22" fillOpacity={1} fill="url(#colorServicios)" strokeWidth={2} />
             </AreaChart>

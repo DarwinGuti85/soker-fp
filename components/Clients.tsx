@@ -214,8 +214,8 @@ const Clients: React.FC = () => {
             }
             <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold text-white">Clientes</h1>
-                    <p className="text-brand-text-dark mt-1">Busca y gestiona la información de tus clientes.</p>
+                    <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Clientes</h1>
+                    <p className="text-gray-600 dark:text-brand-text-dark mt-1">Busca y gestiona la información de tus clientes.</p>
                 </div>
                 {hasPermission('clients', 'edit') && (
                     <button
@@ -233,35 +233,35 @@ const Clients: React.FC = () => {
                     placeholder="Buscar por nombre, documento o WhatsApp..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full md:w-1/2 lg:w-1/3 bg-brand-bg-light border border-gray-700 rounded-md p-2.5 text-brand-text focus:ring-brand-orange focus:border-brand-orange transition-colors"
+                    className="w-full md:w-1/2 lg:w-1/3 bg-white dark:bg-brand-bg-light border border-gray-300 dark:border-gray-700 rounded-md p-2.5 text-gray-900 dark:text-brand-text focus:ring-brand-orange focus:border-brand-orange transition-colors"
                 />
             </div>
 
 
-            <div className="bg-brand-bg-light rounded-lg shadow-lg border border-gray-700/50 overflow-hidden">
+            <div className="bg-brand-orange/10 dark:bg-brand-bg-light rounded-lg shadow-lg border border-brand-orange/30 dark:border-gray-700/50 overflow-hidden">
                 <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-700">
-                        <thead className="bg-gray-800/50">
+                    <table className="min-w-full divide-y divide-brand-orange/20 dark:divide-gray-700">
+                        <thead className="bg-black/5 dark:bg-gray-800/50">
                             <tr>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-brand-text-dark uppercase tracking-wider">Nombre</th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-brand-text-dark uppercase tracking-wider">Contacto</th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-brand-text-dark uppercase tracking-wider">Dirección</th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-brand-text-dark uppercase tracking-wider">Acciones</th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-brand-text-dark uppercase tracking-wider">Nombre</th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-brand-text-dark uppercase tracking-wider">Contacto</th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-brand-text-dark uppercase tracking-wider">Dirección</th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-brand-text-dark uppercase tracking-wider">Acciones</th>
                             </tr>
                         </thead>
-                        <tbody className="bg-brand-bg-light divide-y divide-gray-700">
+                        <tbody className="dark:bg-brand-bg-light divide-y divide-brand-orange/20 dark:divide-gray-700">
                             {currentClients.length > 0 ? (
                                 currentClients.map((client, index) => (
-                                    <tr key={client.id} className="hover:bg-gray-800/40 transition-colors animate-fadeInUp" style={{ animationDelay: `${Math.min(index * 50, 500)}ms`}}>
+                                    <tr key={client.id} className="hover:bg-brand-orange/20 dark:hover:bg-gray-800/40 transition-colors animate-fadeInUp" style={{ animationDelay: `${Math.min(index * 50, 500)}ms`}}>
                                         <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-sm font-medium text-brand-text">{`${client.firstName} ${client.lastName}`}</div>
-                                            <div className="text-sm text-brand-text-dark">{client.taxId || 'N/A'}</div>
+                                            <div className="text-sm font-medium text-gray-900 dark:text-brand-text">{`${client.firstName} ${client.lastName}`}</div>
+                                            <div className="text-sm text-gray-600 dark:text-brand-text-dark">{client.taxId || 'N/A'}</div>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-brand-text-dark">
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-brand-text-dark">
                                             <div>{client.whatsapp || 'N/A'}</div>
                                             <div>{client.email || 'N/A'}</div>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-brand-text-dark">{client.address}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-brand-text-dark">{client.address}</td>
                                         <td className="px-6 py-4 whitespace-nowrap text-left text-sm font-medium">
                                             <div className="flex items-center space-x-4">
                                                 {hasPermission('clients', 'edit') && (
@@ -280,7 +280,7 @@ const Clients: React.FC = () => {
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan={4} className="text-center py-10 px-6 text-brand-text-dark">
+                                    <td colSpan={4} className="text-center py-10 px-6 text-gray-600 dark:text-brand-text-dark">
                                         No se encontraron clientes que coincidan con la búsqueda.
                                     </td>
                                 </tr>
@@ -290,22 +290,22 @@ const Clients: React.FC = () => {
                 </div>
 
                 {pageCount > 1 && (
-                    <div className="px-6 py-4 flex items-center justify-between border-t border-gray-700">
-                        <span className="text-sm text-brand-text-dark">
+                    <div className="px-6 py-4 flex items-center justify-between border-t border-brand-orange/20 dark:border-gray-700">
+                        <span className="text-sm text-gray-600 dark:text-brand-text-dark">
                             Página {currentPage} de {pageCount} ({filteredClients.length} resultados)
                         </span>
                         <div className="flex items-center space-x-2">
                             <button
                                 onClick={() => paginate(currentPage - 1)}
                                 disabled={currentPage === 1}
-                                className="px-3 py-1 rounded-md bg-brand-bg-dark text-sm font-semibold text-brand-text enabled:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="px-3 py-1 rounded-md bg-gray-200 dark:bg-brand-bg-dark text-sm font-semibold text-gray-800 dark:text-brand-text enabled:hover:bg-gray-300 dark:enabled:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 Anterior
                             </button>
                             <button
                                 onClick={() => paginate(currentPage + 1)}
                                 disabled={currentPage === pageCount}
-                                className="px-3 py-1 rounded-md bg-brand-bg-dark text-sm font-semibold text-brand-text enabled:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="px-3 py-1 rounded-md bg-gray-200 dark:bg-brand-bg-dark text-sm font-semibold text-gray-800 dark:text-brand-text enabled:hover:bg-gray-300 dark:enabled:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 Siguiente
                             </button>

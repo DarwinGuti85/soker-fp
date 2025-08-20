@@ -2,14 +2,15 @@
 import React, { useState, useMemo } from 'react';
 import { useData } from '../hooks/useData';
 import { useAuth } from '../hooks/useAuth';
+import { useTheme } from '../hooks/useTheme';
 import { InventoryItem } from '../types';
 import { CloseIcon, EditIcon } from './ui/icons';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, PieChart, Pie, Cell, CartesianGrid } from 'recharts';
 
 // Component for individual chart panels
 const ChartPanel: React.FC<{ title: string, children: React.ReactNode }> = ({ title, children }) => (
-    <div className="bg-brand-bg-light p-4 rounded-lg shadow-lg border border-gray-700/50">
-        <h3 className="text-lg font-bold text-white mb-4">{title}</h3>
+    <div className="bg-brand-orange/10 dark:bg-brand-bg-light p-4 rounded-lg shadow-lg border border-brand-orange/30 dark:border-gray-700/50">
+        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">{title}</h3>
         <div style={{ width: '100%', height: 250 }}>
             {children}
         </div>
@@ -85,9 +86,18 @@ const ItemModal: React.FC<{
 const Inventory: React.FC = () => {
   const { inventory, addInventoryItem, updateInventoryItem } = useData();
   const { hasPermission } = useAuth();
+  const { theme } = useTheme();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
   const [filter, setFilter] = useState('');
+
+  const axisColor = theme === 'dark' ? '#A0A0A0' : '#6B7280';
+  const gridColor = theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)';
+  const tooltipStyle = { 
+      backgroundColor: theme === 'dark' ? '#1A1A1A' : '#FFFFFF', 
+      borderColor: theme === 'dark' ? '#333' : '#CCC',
+      color: theme === 'dark' ? '#E0E0E0' : '#333'
+  };
 
   const filteredItems = useMemo(() => {
     if (!filter) return inventory;
@@ -160,7 +170,7 @@ const Inventory: React.FC = () => {
     <div className="space-y-6">
       {isModalOpen && canEdit && <ItemModal editingItem={editingItem} onClose={handleCloseModal} onSave={handleSaveItem} />}
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-white">Inventario</h1>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Inventario</h1>
         {canEdit && (
             <button onClick={() => handleOpenModal(null)} className="bg-brand-orange text-white px-4 py-2 rounded-md font-semibold hover:bg-orange-600 transition-colors">
             Añadir Nuevo Artículo
@@ -176,29 +186,29 @@ const Inventory: React.FC = () => {
                 placeholder="Buscar por nombre o SKU..."
                 value={filter}
                 onChange={e => setFilter(e.target.value)}
-                className="w-full bg-brand-bg-light border border-gray-700 rounded-md p-2.5 text-brand-text focus:ring-brand-orange focus:border-brand-orange"
+                className="w-full bg-white dark:bg-brand-bg-light border border-gray-300 dark:border-gray-700 rounded-md p-2.5 text-gray-900 dark:text-brand-text focus:ring-brand-orange focus:border-brand-orange"
             />
-            <div className="bg-brand-bg-light rounded-lg shadow-lg border border-gray-700/50 overflow-hidden">
+            <div className="bg-brand-orange/10 dark:bg-brand-bg-light rounded-lg shadow-lg border border-brand-orange/30 dark:border-gray-700/50 overflow-hidden">
                 <div className="overflow-y-auto h-[calc(100vh-280px)] custom-scrollbar">
-                    <table className="min-w-full divide-y divide-gray-700">
-                        <thead className="bg-gray-800/50 sticky top-0 z-10">
+                    <table className="min-w-full divide-y divide-brand-orange/20 dark:divide-gray-700">
+                        <thead className="bg-black/5 dark:bg-gray-800/50 sticky top-0 z-10">
                         <tr>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-brand-text-dark uppercase tracking-wider">Nombre del Artículo</th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-brand-text-dark uppercase tracking-wider">SKU</th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-brand-text-dark uppercase tracking-wider">Cantidad</th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-brand-text-dark uppercase tracking-wider">Precio</th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-brand-text-dark uppercase tracking-wider">Acciones</th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-brand-text-dark uppercase tracking-wider">Nombre del Artículo</th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-brand-text-dark uppercase tracking-wider">SKU</th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-brand-text-dark uppercase tracking-wider">Cantidad</th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-brand-text-dark uppercase tracking-wider">Precio</th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-brand-text-dark uppercase tracking-wider">Acciones</th>
                         </tr>
                         </thead>
-                        <tbody className="bg-brand-bg-light divide-y divide-gray-700">
+                        <tbody className="dark:bg-brand-bg-light divide-y divide-brand-orange/20 dark:divide-gray-700">
                         {filteredItems.map((item) => (
-                            <tr key={item.id} className="hover:bg-gray-800/40 transition-colors">
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-brand-text">{item.name}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-brand-text-dark font-mono">{item.sku}</td>
-                            <td className={`px-6 py-4 whitespace-nowrap text-sm font-bold ${item.quantity > 5 ? 'text-green-400' : item.quantity > 0 ? 'text-yellow-400' : 'text-red-500'}`}>
+                            <tr key={item.id} className="hover:bg-brand-orange/20 dark:hover:bg-gray-800/40 transition-colors">
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-brand-text">{item.name}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-brand-text-dark font-mono">{item.sku}</td>
+                            <td className={`px-6 py-4 whitespace-nowrap text-sm font-bold ${item.quantity > 5 ? 'text-green-500' : item.quantity > 0 ? 'text-yellow-500' : 'text-red-500'}`}>
                                 {item.quantity}
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-brand-text-dark">{new Intl.NumberFormat('es-VE', { style: 'currency', currency: 'VES' }).format(item.price)}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-brand-text-dark">{new Intl.NumberFormat('es-VE', { style: 'currency', currency: 'VES' }).format(item.price)}</td>
                             <td className="px-6 py-4 whitespace-nowrap text-left text-sm font-medium">
                                 {canEdit ? (
                                     <button onClick={() => handleOpenModal(item)} className="text-brand-orange hover:text-orange-400 transition-colors">
@@ -224,8 +234,8 @@ const Inventory: React.FC = () => {
                         <Pie data={chartData.stockDistributionData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={5}>
                              {chartData.stockDistributionData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} />)}
                         </Pie>
-                        <Tooltip contentStyle={{ backgroundColor: '#1A1A1A', borderColor: '#333' }}/>
-                        <Legend iconSize={10} wrapperStyle={{fontSize: "12px", paddingTop: "20px"}}/>
+                        <Tooltip contentStyle={tooltipStyle}/>
+                        <Legend iconSize={10} wrapperStyle={{fontSize: "12px", paddingTop: "20px", color: axisColor}}/>
                     </PieChart>
                 </ResponsiveContainer>
             </ChartPanel>
@@ -233,10 +243,10 @@ const Inventory: React.FC = () => {
             <ChartPanel title="Top 5 Artículos Más Valiosos">
                  <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={chartData.topValuableItems} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.1)" />
-                        <XAxis type="number" stroke="#A0A0A0" tick={{fill: '#A0A0A0', fontSize: 10}} tickFormatter={(value) => new Intl.NumberFormat('es-CO', { notation: 'compact', compactDisplay: 'short' }).format(value as number)}/>
-                        <YAxis type="category" dataKey="name" stroke="#A0A0A0" width={80} tick={{fill: '#A0A0A0', fontSize: 10}} tickLine={false} axisLine={false} />
-                        <Tooltip formatter={(value) => new Intl.NumberFormat('es-VE', { style: 'currency', currency: 'VES' }).format(value as number)} contentStyle={{ backgroundColor: '#1A1A1A', borderColor: '#333' }}/>
+                        <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
+                        <XAxis type="number" stroke={axisColor} tick={{fill: axisColor, fontSize: 10}} tickFormatter={(value) => new Intl.NumberFormat('es-CO', { notation: 'compact', compactDisplay: 'short' }).format(value as number)}/>
+                        <YAxis type="category" dataKey="name" stroke={axisColor} width={80} tick={{fill: axisColor, fontSize: 10}} tickLine={false} axisLine={false} />
+                        <Tooltip formatter={(value) => new Intl.NumberFormat('es-VE', { style: 'currency', currency: 'VES' }).format(value as number)} contentStyle={tooltipStyle}/>
                         <Bar dataKey="Valor Total" fill="#FF5B22" radius={[0, 4, 4, 0]} barSize={15} />
                     </BarChart>
                 </ResponsiveContainer>
@@ -245,10 +255,10 @@ const Inventory: React.FC = () => {
              <ChartPanel title="Artículos por Cantidad">
                 <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={chartData.quantityRangeData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.1)" />
-                        <XAxis dataKey="name" stroke="#A0A0A0" tick={{fill: '#A0A0A0', fontSize: 12}} />
-                        <YAxis stroke="#A0A0A0" allowDecimals={false} tick={{fill: '#A0A0A0', fontSize: 12}}/>
-                        <Tooltip contentStyle={{ backgroundColor: '#1A1A1A', borderColor: '#333' }}/>
+                        <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
+                        <XAxis dataKey="name" stroke={axisColor} tick={{fill: axisColor, fontSize: 12}} />
+                        <YAxis stroke={axisColor} allowDecimals={false} tick={{fill: axisColor, fontSize: 12}}/>
+                        <Tooltip contentStyle={tooltipStyle}/>
                         <Bar dataKey="Cantidad" fill="#8884d8" radius={[4, 4, 0, 0]} />
                     </BarChart>
                 </ResponsiveContainer>
@@ -257,9 +267,11 @@ const Inventory: React.FC = () => {
       </div>
       <style>{`
           .custom-scrollbar::-webkit-scrollbar { width: 8px; }
-          .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); border-radius: 10px; }
-          .custom-scrollbar::-webkit-scrollbar-thumb { background: #4A4A4A; border-radius: 10px; }
-          .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #6A6A6A; }
+          .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); border-radius: 10px; }
+          .dark .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
+          .custom-scrollbar::-webkit-scrollbar-thumb { background: #FF5B22; border-radius: 10px; }
+          .dark .custom-scrollbar::-webkit-scrollbar-thumb { background: #4A4A4A; }
+          .dark .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #6A6A6A; }
       `}</style>
     </div>
   );

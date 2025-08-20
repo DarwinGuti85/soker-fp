@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { useTheme } from '../hooks/useTheme';
 import { User, UserRole } from '../types';
-import { ChevronDownIcon, DashboardIcon, ServicesIcon, ClientsIcon, InventoryIcon, UsersIcon, LogoutIcon, MenuIcon, CloseIcon, BillingIcon, SettingsIcon, SparklesIcon } from './ui/icons';
+import { ChevronDownIcon, DashboardIcon, ServicesIcon, ClientsIcon, InventoryIcon, UsersIcon, LogoutIcon, MenuIcon, CloseIcon, BillingIcon, SettingsIcon, SparklesIcon, SunIcon, MoonIcon } from './ui/icons';
 
 const NavItem: React.FC<{ to: string, children: React.ReactNode, icon: React.ReactNode, isMobile?: boolean }> = ({ to, children, icon, isMobile = false }) => {
   const commonClasses = "flex items-center space-x-3 px-3 py-2 rounded-md font-medium transition-colors";
-  const inactiveClasses = "text-brand-text-dark hover:bg-brand-bg-light hover:text-brand-text";
+  const inactiveClasses = "text-gray-500 dark:text-brand-text-dark hover:bg-gray-100 dark:hover:bg-brand-bg-light hover:text-gray-900 dark:hover:text-brand-text";
   const activeClasses = "text-brand-orange bg-brand-orange/10";
   const sizeClasses = isMobile ? "text-xl" : "text-sm";
   
@@ -31,13 +32,14 @@ const NavLinks: React.FC<{ isMobile?: boolean }> = ({ isMobile }) => {
       {hasPermission('clients', 'view') && <NavItem to="/clients" icon={<ClientsIcon className={isMobile ? "h-6 w-6" : "h-5 w-5"}/>} isMobile={isMobile}>Clientes</NavItem>}
       {hasPermission('billing', 'view') && <NavItem to="/billing" icon={<BillingIcon className={isMobile ? "h-6 w-6" : "h-5 w-5"}/>} isMobile={isMobile}>Facturación</NavItem>}
       {hasPermission('inventory', 'view') && <NavItem to="/inventory" icon={<InventoryIcon className={isMobile ? "h-6 w-6" : "h-5 w-5"}/>} isMobile={isMobile}>Inventario</NavItem>}
-      {hasPermission('ai', 'view') && <NavItem to="/ai" icon={<SparklesIcon className={isMobile ? "h-6 w-6" : "h-5 w-5"}/>} isMobile={isMobile}>Notificaciones</NavItem>}
+      {hasPermission('ai', 'view') && <NavItem to="/ai" icon={<SparklesIcon className={isMobile ? "h-6 w-6" : "h-5 w-5"}/>} isMobile={isMobile}>Asistente Virtual</NavItem>}
     </>
   );
 };
 
 const Header: React.FC = () => {
   const { user, logout, hasPermission } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const [isDropdownOpen, setDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
@@ -53,7 +55,7 @@ const Header: React.FC = () => {
 
   return (
     <>
-      <header className="bg-black/30 backdrop-blur-sm sticky top-0 z-30">
+      <header className="bg-white/80 dark:bg-black/30 backdrop-blur-sm sticky top-0 z-30 border-b border-gray-200 dark:border-transparent">
         <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-8">
@@ -75,23 +77,31 @@ const Header: React.FC = () => {
                   <ChevronDownIcon className={`h-4 w-4 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`}/>
                 </button>
                 {isDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-brand-bg-light border border-gray-700 rounded-md shadow-lg py-1 z-40">
-                    <button
-                      onClick={handleLogout}
-                      className="w-full text-left px-4 py-2 text-sm text-brand-text hover:bg-brand-orange/20 flex items-center space-x-2"
-                    >
-                      <LogoutIcon className="h-4 w-4" />
-                      <span>Cerrar Sesión</span>
-                    </button>
+                  <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-brand-bg-light border border-gray-200 dark:border-gray-700 rounded-md shadow-lg py-1 z-40">
                     {hasPermission('settings', 'view') && (
                       <NavLink
                           to="/settings"
-                          className="w-full text-left px-4 py-2 text-sm text-brand-text hover:bg-brand-orange/20 flex items-center space-x-2"
+                          className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-brand-text hover:bg-gray-100 dark:hover:bg-brand-orange/20 flex items-center space-x-2"
                       >
                           <SettingsIcon className="h-4 w-4" />
                           <span>Ajustes</span>
                       </NavLink>
                     )}
+                    <button
+                      onClick={toggleTheme}
+                      className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-brand-text hover:bg-gray-100 dark:hover:bg-brand-orange/20 flex items-center space-x-2"
+                    >
+                      {theme === 'dark' ? <SunIcon className="h-4 w-4" /> : <MoonIcon className="h-4 w-4" />}
+                      <span>{theme === 'dark' ? 'Tema Claro' : 'Tema Oscuro'}</span>
+                    </button>
+                    <div className="border-t border-gray-200 dark:border-gray-700 my-1"></div>
+                    <button
+                      onClick={handleLogout}
+                      className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-brand-text hover:bg-gray-100 dark:hover:bg-brand-orange/20 flex items-center space-x-2"
+                    >
+                      <LogoutIcon className="h-4 w-4" />
+                      <span>Cerrar Sesión</span>
+                    </button>
                   </div>
                 )}
               </div>
@@ -99,7 +109,7 @@ const Header: React.FC = () => {
               <div className="md:hidden flex items-center ml-3">
                 <button
                   onClick={() => setMobileMenuOpen(true)}
-                  className="inline-flex items-center justify-center p-2 rounded-md text-brand-text-dark hover:text-white hover:bg-brand-bg-light focus:outline-none"
+                  className="inline-flex items-center justify-center p-2 rounded-md text-gray-500 dark:text-brand-text-dark hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-brand-bg-light focus:outline-none"
                   aria-label="Abrir menú principal"
                 >
                   <MenuIcon className="h-6 w-6" />
@@ -112,14 +122,14 @@ const Header: React.FC = () => {
 
       {isMobileMenuOpen && (
         <div 
-          className="fixed inset-0 bg-brand-bg-dark z-50 p-4 flex flex-col md:hidden animate-fadeInUp"
+          className="fixed inset-0 bg-white dark:bg-brand-bg-dark z-50 p-4 flex flex-col md:hidden animate-fadeInUp"
           style={{animationDuration: '300ms'}}
         >
           <div className="flex justify-between items-center mb-8">
             <NavLink to="/dashboard" className="flex-shrink-0 flex items-center space-x-2">
                 <h1 className="neon-title">𝕊𝕆𝕂𝔼ℝ 𝔽ℙ</h1>
             </NavLink>
-            <button onClick={() => setMobileMenuOpen(false)} className="text-brand-text-dark hover:text-white p-2" aria-label="Cerrar menú">
+            <button onClick={() => setMobileMenuOpen(false)} className="text-gray-500 dark:text-brand-text-dark hover:text-black dark:hover:text-white p-2" aria-label="Cerrar menú">
               <CloseIcon className="h-7 w-7" />
             </button>
           </div>

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { useData } from '../hooks/useData';
@@ -123,39 +124,39 @@ const PermissionsManager: React.FC = () => {
     };
 
     return (
-        <div className="bg-brand-bg-light rounded-lg shadow-lg border border-gray-700/50 p-6">
-            <h2 className="text-xl font-bold text-white mb-4">Gestión de Permisos</h2>
+        <div className="bg-brand-orange/10 dark:bg-brand-bg-light rounded-lg shadow-lg border border-brand-orange/30 dark:border-gray-700/50 p-6">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Gestión de Permisos</h2>
             <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-700">
-                    <thead className="bg-gray-800/50">
+                <table className="min-w-full divide-y divide-brand-orange/20 dark:divide-gray-700">
+                    <thead className="bg-black/5 dark:bg-gray-800/50">
                         <tr>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-brand-text-dark uppercase tracking-wider">Módulo</th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-brand-text-dark uppercase tracking-wider">Módulo</th>
                             {editableRoles.map(role => (
-                                <th key={role} scope="col" colSpan={3} className="px-6 py-3 text-center text-xs font-medium text-brand-text-dark uppercase tracking-wider border-l border-gray-700">{ROLE_LABELS_ES[role]}</th>
+                                <th key={role} scope="col" colSpan={3} className="px-6 py-3 text-center text-xs font-medium text-gray-600 dark:text-brand-text-dark uppercase tracking-wider border-l border-brand-orange/20 dark:border-gray-700">{ROLE_LABELS_ES[role]}</th>
                             ))}
                         </tr>
                         <tr>
-                            <th scope="col" className="px-6 py-2 text-left text-xs font-medium text-brand-text-dark uppercase tracking-wider"></th>
+                            <th scope="col" className="px-6 py-2 text-left text-xs font-medium text-gray-600 dark:text-brand-text-dark uppercase tracking-wider"></th>
                             {editableRoles.map(role => (
                                 <React.Fragment key={role}>
-                                    <th scope="col" className="py-2 text-center text-xs font-medium text-brand-text-dark uppercase tracking-wider border-l border-gray-700">Ver</th>
-                                    <th scope="col" className="py-2 text-center text-xs font-medium text-brand-text-dark uppercase tracking-wider">Editar</th>
-                                    <th scope="col" className="py-2 text-center text-xs font-medium text-brand-text-dark uppercase tracking-wider">Elim.</th>
+                                    <th scope="col" className="py-2 text-center text-xs font-medium text-gray-600 dark:text-brand-text-dark uppercase tracking-wider border-l border-brand-orange/20 dark:border-gray-700">Ver</th>
+                                    <th scope="col" className="py-2 text-center text-xs font-medium text-gray-600 dark:text-brand-text-dark uppercase tracking-wider">Editar</th>
+                                    <th scope="col" className="py-2 text-center text-xs font-medium text-gray-600 dark:text-brand-text-dark uppercase tracking-wider">Elim.</th>
                                 </React.Fragment>
                             ))}
                         </tr>
                     </thead>
-                    <tbody className="bg-brand-bg-light divide-y divide-gray-700">
+                    <tbody className="divide-y divide-brand-orange/20 dark:divide-gray-700">
                         {MODULES.map(module => (
-                            <tr key={module}>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-brand-text">{MODULE_LABELS_ES[module]}</td>
+                            <tr key={module} className="hover:bg-brand-orange/20 dark:hover:bg-gray-800/40">
+                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-brand-text">{MODULE_LABELS_ES[module]}</td>
                                 {editableRoles.map(role => (
                                     <React.Fragment key={role}>
                                         {(['view', 'edit', 'delete'] as const).map(permission => (
-                                            <td key={`${role}-${module}-${permission}`} className="px-6 py-4 whitespace-nowrap text-center text-sm border-l border-gray-700">
+                                            <td key={`${role}-${module}-${permission}`} className="px-6 py-4 whitespace-nowrap text-center text-sm border-l border-brand-orange/20 dark:border-gray-700">
                                                 <input
                                                     type="checkbox"
-                                                    className="h-4 w-4 rounded bg-brand-bg-dark border-gray-600 text-brand-orange focus:ring-brand-orange"
+                                                    className="h-4 w-4 rounded bg-gray-100 dark:bg-brand-bg-dark border-gray-400 dark:border-gray-600 text-brand-orange focus:ring-brand-orange"
                                                     checked={permissions[role]?.[module]?.[permission] ?? false}
                                                     onChange={(e) => handlePermissionChange(role, module, permission, e.target.checked)}
                                                     disabled={module === 'dashboard' && permission !== 'view'}
@@ -169,7 +170,7 @@ const PermissionsManager: React.FC = () => {
                     </tbody>
                 </table>
             </div>
-            <p className="text-xs text-brand-text-dark mt-4 italic">El rol de Administrador tiene todos los permisos por defecto y no puede ser modificado.</p>
+            <p className="text-xs text-gray-500 dark:text-brand-text-dark mt-4 italic">El rol de Administrador tiene todos los permisos por defecto y no puede ser modificado.</p>
         </div>
     );
 };
@@ -265,32 +266,32 @@ const Settings: React.FC = () => {
             />
 
             <div className="flex justify-between items-center">
-                <h1 className="text-3xl font-bold text-white">Ajustes del Sistema</h1>
+                <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Ajustes del Sistema</h1>
             </div>
             
-            <div className="bg-brand-bg-light rounded-lg shadow-lg border border-gray-700/50 p-6">
-                <h2 className="text-xl font-bold text-white mb-4">Información de la Empresa</h2>
+            <div className="bg-brand-orange/10 dark:bg-brand-bg-light rounded-lg shadow-lg border border-brand-orange/30 dark:border-gray-700/50 p-6">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Información de la Empresa</h2>
                 <form onSubmit={handleCompanyInfoSave} className="space-y-4">
                     <div>
-                        <label htmlFor="name" className="block text-sm font-medium text-brand-text-dark">Nombre / Razón Social</label>
-                        <input type="text" name="name" id="name" value={companyForm.name} onChange={handleCompanyFormChange} className="mt-1 w-full bg-brand-bg-dark border border-gray-600 rounded-md p-2 focus:ring-brand-orange focus:border-brand-orange" required/>
+                        <label htmlFor="name" className="block text-sm font-medium text-gray-600 dark:text-brand-text-dark">Nombre / Razón Social</label>
+                        <input type="text" name="name" id="name" value={companyForm.name} onChange={handleCompanyFormChange} className="mt-1 w-full bg-gray-50 dark:bg-brand-bg-dark border border-gray-300 dark:border-gray-600 rounded-md p-2 focus:ring-brand-orange focus:border-brand-orange" required/>
                     </div>
                      <div>
-                        <label htmlFor="taxId" className="block text-sm font-medium text-brand-text-dark">RIF</label>
-                        <input type="text" name="taxId" id="taxId" value={companyForm.taxId} onChange={handleCompanyFormChange} className="mt-1 w-full bg-brand-bg-dark border border-gray-600 rounded-md p-2 focus:ring-brand-orange focus:border-brand-orange" required/>
+                        <label htmlFor="taxId" className="block text-sm font-medium text-gray-600 dark:text-brand-text-dark">RIF</label>
+                        <input type="text" name="taxId" id="taxId" value={companyForm.taxId} onChange={handleCompanyFormChange} className="mt-1 w-full bg-gray-50 dark:bg-brand-bg-dark border border-gray-300 dark:border-gray-600 rounded-md p-2 focus:ring-brand-orange focus:border-brand-orange" required/>
                     </div>
                     <div>
-                        <label htmlFor="address" className="block text-sm font-medium text-brand-text-dark">Dirección Fiscal</label>
-                        <input type="text" name="address" id="address" value={companyForm.address} onChange={handleCompanyFormChange} className="mt-1 w-full bg-brand-bg-dark border border-gray-600 rounded-md p-2 focus:ring-brand-orange focus:border-brand-orange" required/>
+                        <label htmlFor="address" className="block text-sm font-medium text-gray-600 dark:text-brand-text-dark">Dirección Fiscal</label>
+                        <input type="text" name="address" id="address" value={companyForm.address} onChange={handleCompanyFormChange} className="mt-1 w-full bg-gray-50 dark:bg-brand-bg-dark border border-gray-300 dark:border-gray-600 rounded-md p-2 focus:ring-brand-orange focus:border-brand-orange" required/>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                        <div>
-                           <label htmlFor="email" className="block text-sm font-medium text-brand-text-dark">Email de Contacto</label>
-                           <input type="email" name="email" id="email" value={companyForm.email} onChange={handleCompanyFormChange} className="mt-1 w-full bg-brand-bg-dark border border-gray-600 rounded-md p-2 focus:ring-brand-orange focus:border-brand-orange" required/>
+                           <label htmlFor="email" className="block text-sm font-medium text-gray-600 dark:text-brand-text-dark">Email de Contacto</label>
+                           <input type="email" name="email" id="email" value={companyForm.email} onChange={handleCompanyFormChange} className="mt-1 w-full bg-gray-50 dark:bg-brand-bg-dark border border-gray-300 dark:border-gray-600 rounded-md p-2 focus:ring-brand-orange focus:border-brand-orange" required/>
                        </div>
                        <div>
-                           <label htmlFor="phone" className="block text-sm font-medium text-brand-text-dark">Teléfono de Contacto</label>
-                           <input type="tel" name="phone" id="phone" value={companyForm.phone} onChange={handleCompanyFormChange} className="mt-1 w-full bg-brand-bg-dark border border-gray-600 rounded-md p-2 focus:ring-brand-orange focus:border-brand-orange" required/>
+                           <label htmlFor="phone" className="block text-sm font-medium text-gray-600 dark:text-brand-text-dark">Teléfono de Contacto</label>
+                           <input type="tel" name="phone" id="phone" value={companyForm.phone} onChange={handleCompanyFormChange} className="mt-1 w-full bg-gray-50 dark:bg-brand-bg-dark border border-gray-300 dark:border-gray-600 rounded-md p-2 focus:ring-brand-orange focus:border-brand-orange" required/>
                        </div>
                     </div>
                      <div className="flex items-center gap-4 pt-2">
@@ -306,9 +307,9 @@ const Settings: React.FC = () => {
             <PermissionsManager />
 
             {hasPermission('users', 'view') && (
-            <div className="bg-brand-bg-light rounded-lg shadow-lg border border-gray-700/50 p-6">
+            <div className="bg-brand-orange/10 dark:bg-brand-bg-light rounded-lg shadow-lg border border-brand-orange/30 dark:border-gray-700/50 p-6">
                 <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-xl font-bold text-white">Gestión de Usuarios</h2>
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-white">Gestión de Usuarios</h2>
                     {canEditUsers && (
                         <button onClick={openAddModal} className="bg-brand-orange text-white px-4 py-2 rounded-md font-semibold hover:bg-orange-600 transition-colors">
                             Añadir Nuevo Usuario
@@ -316,22 +317,22 @@ const Settings: React.FC = () => {
                     )}
                 </div>
                 <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-700">
-                        <thead className="bg-gray-800/50">
+                    <table className="min-w-full divide-y divide-brand-orange/20 dark:divide-gray-700">
+                        <thead className="bg-black/5 dark:bg-gray-800/50">
                             <tr>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-brand-text-dark uppercase tracking-wider">Nombre Completo</th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-brand-text-dark uppercase tracking-wider">Usuario</th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-brand-text-dark uppercase tracking-wider">Email</th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-brand-text-dark uppercase tracking-wider">Rol</th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-brand-text-dark uppercase tracking-wider">Acciones</th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-brand-text-dark uppercase tracking-wider">Nombre Completo</th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-brand-text-dark uppercase tracking-wider">Usuario</th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-brand-text-dark uppercase tracking-wider">Email</th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-brand-text-dark uppercase tracking-wider">Rol</th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-brand-text-dark uppercase tracking-wider">Acciones</th>
                             </tr>
                         </thead>
-                        <tbody className="bg-brand-bg-light divide-y divide-gray-700">
+                        <tbody className="divide-y divide-brand-orange/20 dark:divide-gray-700">
                             {users.map((user) => (
-                                <tr key={user.id} className="hover:bg-gray-800/40 transition-colors">
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-brand-text">{user.firstName} {user.lastName}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-brand-text-dark font-mono">{user.username}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-brand-text-dark">{user.email}</td>
+                                <tr key={user.id} className="hover:bg-brand-orange/20 dark:hover:bg-gray-800/40 transition-colors">
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-brand-text">{user.firstName} {user.lastName}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-brand-text-dark font-mono">{user.username}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-brand-text-dark">{user.email}</td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                                         <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${roleColors[user.role]}`}>
                                             {ROLE_LABELS_ES[user.role]}

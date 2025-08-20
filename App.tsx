@@ -10,6 +10,7 @@ import Settings from './components/Settings';
 import Billing from './components/Billing';
 import AIModule from './components/AIModule';
 import { useAuth } from './hooks/useAuth';
+import { useTheme } from './hooks/useTheme';
 import { UserRole, Module, PermissionSet } from './types';
 import Login from './components/Login';
 import Chatbot from './components/Chatbot';
@@ -86,55 +87,59 @@ const AnimatedBackground: React.FC = () => (
     </div>
 );
 
-const MainLayout: React.FC = () => (
-  <div className="min-h-screen text-brand-text font-sans antialiased relative overflow-hidden">
-    <AnimatedBackground />
-    
-    <div className="relative z-10">
-      <Header />
-      <main className="px-4 sm:px-6 lg:px-8 py-8">
-        <div className="max-w-7xl mx-auto">
-          <Routes>
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
-            <Route path="/dashboard" element={<ProtectedRoute module="dashboard" permission="view"><Dashboard /></ProtectedRoute>} />
-            <Route path="/services" element={
-              <ProtectedRoute module="services" permission="view">
-                <Services />
-              </ProtectedRoute>
-            } />
-            <Route path="/clients" element={
-              <ProtectedRoute module="clients" permission="view">
-                <Clients />
-              </ProtectedRoute>
-            } />
-            <Route path="/billing" element={
-              <ProtectedRoute module="billing" permission="view">
-                <Billing />
-              </ProtectedRoute>
-            } />
-            <Route path="/inventory" element={
-              <ProtectedRoute module="inventory" permission="view">
-                <Inventory />
-              </ProtectedRoute>
-            } />
-            <Route path="/ai" element={
-              <ProtectedRoute module="ai" permission="view">
-                <AIModule />
-              </ProtectedRoute>
-            } />
-            <Route path="/settings" element={
-              <ProtectedRoute module="settings" permission="view">
-                <Settings />
-              </ProtectedRoute>
-            } />
-            <Route path="*" element={<Navigate to="/dashboard" replace />} />
-          </Routes>
-        </div>
-      </main>
+const MainLayout: React.FC = () => {
+  const { theme } = useTheme();
+
+  return (
+    <div className="min-h-screen text-gray-900 dark:text-brand-text font-sans antialiased relative overflow-hidden bg-gray-50 dark:bg-brand-bg-dark">
+      {theme === 'dark' && <AnimatedBackground />}
+      
+      <div className="relative z-10">
+        <Header />
+        <main className="px-4 sm:px-6 lg:px-8 py-8">
+          <div className="max-w-7xl mx-auto">
+            <Routes>
+              <Route path="/" element={<Navigate to="/dashboard" replace />} />
+              <Route path="/dashboard" element={<ProtectedRoute module="dashboard" permission="view"><Dashboard /></ProtectedRoute>} />
+              <Route path="/services" element={
+                <ProtectedRoute module="services" permission="view">
+                  <Services />
+                </ProtectedRoute>
+              } />
+              <Route path="/clients" element={
+                <ProtectedRoute module="clients" permission="view">
+                  <Clients />
+                </ProtectedRoute>
+              } />
+              <Route path="/billing" element={
+                <ProtectedRoute module="billing" permission="view">
+                  <Billing />
+                </ProtectedRoute>
+              } />
+              <Route path="/inventory" element={
+                <ProtectedRoute module="inventory" permission="view">
+                  <Inventory />
+                </ProtectedRoute>
+              } />
+              <Route path="/ai" element={
+                <ProtectedRoute module="ai" permission="view">
+                  <AIModule />
+                </ProtectedRoute>
+              } />
+              <Route path="/settings" element={
+                <ProtectedRoute module="settings" permission="view">
+                  <Settings />
+                </ProtectedRoute>
+              } />
+              <Route path="*" element={<Navigate to="/dashboard" replace />} />
+            </Routes>
+          </div>
+        </main>
+      </div>
+      <Chatbot />
     </div>
-    <Chatbot />
-  </div>
-);
+  );
+};
 
 
 const App: React.FC = () => {

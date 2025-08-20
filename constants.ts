@@ -60,5 +60,5 @@ export const MODULE_LABELS_ES: Record<Module, string> = {
     inventory: 'Inventario',
     settings: 'Ajustes',
     users: 'Usuarios',
-    ai: 'Automatización IA'
+    ai: 'Asistente Virtual'
 };

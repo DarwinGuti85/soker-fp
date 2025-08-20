@@ -527,8 +527,8 @@ const Billing: React.FC = () => {
 
       <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
         <div>
-            <h1 className="text-3xl font-bold text-white">Facturación</h1>
-            <p className="text-brand-text-dark mt-1">Gestiona y consulta todas las facturas.</p>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Facturación</h1>
+            <p className="text-gray-600 dark:text-brand-text-dark mt-1">Gestiona y consulta todas las facturas.</p>
         </div>
         {canEditBilling && (
             <button 
@@ -546,32 +546,32 @@ const Billing: React.FC = () => {
             placeholder="Buscar por # Factura, Cliente, o # Servicio..."
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
-            className="w-full md:w-1/2 lg:w-1/3 bg-brand-bg-light border border-gray-700 rounded-md p-2.5 text-brand-text focus:ring-brand-orange focus:border-brand-orange"
+            className="w-full md:w-1/2 lg:w-1/3 bg-white dark:bg-brand-bg-light border border-gray-300 dark:border-gray-700 rounded-md p-2.5 text-gray-900 dark:text-brand-text focus:ring-brand-orange focus:border-brand-orange"
         />
         
-        <div className="bg-brand-bg-light rounded-lg shadow-lg border border-gray-700/50 overflow-hidden">
+        <div className="bg-brand-orange/10 dark:bg-brand-bg-light rounded-lg shadow-lg border border-brand-orange/30 dark:border-gray-700/50 overflow-hidden">
             <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-700">
-                    <thead className="bg-gray-800/50">
+                <table className="min-w-full divide-y divide-brand-orange/20 dark:divide-gray-700">
+                    <thead className="bg-black/5 dark:bg-gray-800/50">
                     <tr>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-brand-text-dark uppercase tracking-wider">Factura #</th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-brand-text-dark uppercase tracking-wider">Cliente</th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-brand-text-dark uppercase tracking-wider">Fecha de Emisión</th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-brand-text-dark uppercase tracking-wider">Total</th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-brand-text-dark uppercase tracking-wider">Estado</th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-brand-text-dark uppercase tracking-wider">Acciones</th>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-brand-text-dark uppercase tracking-wider">Factura #</th>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-brand-text-dark uppercase tracking-wider">Cliente</th>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-brand-text-dark uppercase tracking-wider">Fecha de Emisión</th>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-brand-text-dark uppercase tracking-wider">Total</th>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-brand-text-dark uppercase tracking-wider">Estado</th>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-brand-text-dark uppercase tracking-wider">Acciones</th>
                     </tr>
                     </thead>
-                    <tbody className="bg-brand-bg-light divide-y divide-gray-700">
+                    <tbody className="dark:bg-brand-bg-light divide-y divide-brand-orange/20 dark:divide-gray-700">
                     {currentInvoices.map((invoice, index) => (
-                        <tr key={invoice.id} className="hover:bg-gray-800/40 transition-colors animate-fadeInUp" style={{ animationDelay: `${Math.min(index * 50, 500)}ms`}}>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-brand-text">{invoice.id}</td>
+                        <tr key={invoice.id} className="hover:bg-brand-orange/20 dark:hover:bg-gray-800/40 transition-colors animate-fadeInUp" style={{ animationDelay: `${Math.min(index * 50, 500)}ms`}}>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900 dark:text-brand-text">{invoice.id}</td>
                             <td className="px-6 py-4 whitespace-nowrap">
-                                <div className="text-sm text-brand-text">{invoice.clientName || `${invoice.serviceOrder?.client.firstName} ${invoice.serviceOrder?.client.lastName}`}</div>
-                                <div className="text-xs text-brand-text-dark">Servicio: {invoice.serviceOrder?.id || 'Histórico'}</div>
+                                <div className="text-sm text-gray-900 dark:text-brand-text">{invoice.clientName || `${invoice.serviceOrder?.client.firstName} ${invoice.serviceOrder?.client.lastName}`}</div>
+                                <div className="text-xs text-gray-600 dark:text-brand-text-dark">Servicio: {invoice.serviceOrder?.id || 'Histórico'}</div>
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-brand-text-dark">{new Date(invoice.issueDate).toLocaleDateString('es-ES')}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-brand-text-dark">{new Intl.NumberFormat('es-VE', { style: 'currency', currency: 'VES' }).format(invoice.totalAmount)}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-brand-text-dark">{new Date(invoice.issueDate).toLocaleDateString('es-ES')}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-brand-text-dark">{new Intl.NumberFormat('es-VE', { style: 'currency', currency: 'VES' }).format(invoice.totalAmount)}</td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm">
                                 <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${INVOICE_STATUS_COLORS[invoice.status]}`}>
                                     {INVOICE_STATUS_LABELS_ES[invoice.status]}
@@ -588,27 +588,27 @@ const Billing: React.FC = () => {
                 </table>
                  {filteredInvoices.length === 0 && (
                     <div className="text-center py-10">
-                        <p className="text-sm text-brand-text-dark">No se encontraron facturas con ese criterio.</p>
+                        <p className="text-sm text-gray-600 dark:text-brand-text-dark">No se encontraron facturas con ese criterio.</p>
                     </div>
                 )}
             </div>
              {pageCount > 1 && (
-                    <div className="px-6 py-4 flex items-center justify-between border-t border-gray-700">
-                        <span className="text-sm text-brand-text-dark">
+                    <div className="px-6 py-4 flex items-center justify-between border-t border-brand-orange/20 dark:border-gray-700">
+                        <span className="text-sm text-gray-600 dark:text-brand-text-dark">
                             Página {currentPage} de {pageCount} ({filteredInvoices.length} resultados)
                         </span>
                         <div className="flex items-center space-x-2">
                             <button
                                 onClick={() => paginate(currentPage - 1)}
                                 disabled={currentPage === 1}
-                                className="px-3 py-1 rounded-md bg-brand-bg-dark text-sm font-semibold text-brand-text enabled:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="px-3 py-1 rounded-md bg-gray-200 dark:bg-brand-bg-dark text-sm font-semibold text-gray-800 dark:text-brand-text enabled:hover:bg-gray-300 dark:enabled:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 Anterior
                             </button>
                             <button
                                 onClick={() => paginate(currentPage + 1)}
                                 disabled={currentPage === pageCount}
-                                className="px-3 py-1 rounded-md bg-brand-bg-dark text-sm font-semibold text-brand-text enabled:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="px-3 py-1 rounded-md bg-gray-200 dark:bg-brand-bg-dark text-sm font-semibold text-gray-800 dark:text-brand-text enabled:hover:bg-gray-300 dark:enabled:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 Siguiente
                             </button>
