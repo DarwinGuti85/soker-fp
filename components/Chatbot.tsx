@@ -13,7 +13,7 @@ interface Message {
 const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
 
 // Initialize the Gemini API client
-const ai = new GoogleGenAI(import.meta.env.VITE_GEMINI_API_KEY);
+const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
 
 const TypingIndicator: React.FC = () => (
     <div className="message message-ai">
