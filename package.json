@@ -22,3 +22,5 @@
     "vite": "^6.2.0"
   }
 }
+
+// Initialize the Gemini API client
