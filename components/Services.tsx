@@ -63,6 +63,9 @@ const ServiceDetailsView: React.FC<{ service: ServiceOrder, onClose: () => void 
         setNewStatus(service.status);
         setNewNotes(service.technicianNotes);
         setSelectedTechnicianId(service.technician?.id || '');
+        setIsEditingStatus(false);
+        setIsEditingNotes(false);
+        setIsEditingTechnician(false);
     }, [service]);
 
     const handleSaveStatus = () => {
@@ -486,6 +489,18 @@ const Services: React.FC = () => {
   useEffect(() => {
     setCurrentPage(1);
   }, [activeFilter, searchTerm]);
+
+  useEffect(() => {
+    if (selectedService) {
+      const updatedService = services.find(s => s.id === selectedService.id);
+      if (updatedService) {
+        setSelectedService(updatedService);
+      } else {
+        // Service might have been deleted
+        setSelectedService(null);
+      }
+    }
+  }, [services]);
 
   const filteredServices = useMemo(() => {
     let filtered = services;

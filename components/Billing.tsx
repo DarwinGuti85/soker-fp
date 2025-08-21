@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useData } from '../hooks/useData';
@@ -60,64 +59,90 @@ const NewInvoiceModal: React.FC<{
     if (!isOpen || !serviceToBill) return null;
 
     return (
-        <div className="fixed inset-0 bg-black/70 z-50 flex justify-center items-center md:items-start p-4 md:pt-20 overflow-y-auto" aria-modal="true" role="dialog">
-            <form onSubmit={handleFormSubmit} className="bg-brand-bg-light rounded-lg shadow-2xl border border-gray-700/50 w-full max-w-3xl max-h-[90vh] flex flex-col">
-                <div className="px-6 py-4 border-b border-gray-700 flex justify-between items-center">
-                    <h2 className="text-2xl font-bold text-white">Crear Factura</h2>
+        <div className="fixed inset-0 bg-black/70 z-50 flex justify-center items-center p-4" aria-modal="true" role="dialog">
+            <form onSubmit={handleFormSubmit} className="bg-brand-bg-light rounded-lg shadow-2xl border border-gray-700/50 w-full max-w-5xl max-h-[95vh] flex flex-col">
+                <div className="px-6 py-4 border-b border-gray-700 flex justify-between items-center flex-shrink-0">
+                    <h2 className="text-2xl font-bold text-white">Crear Nueva Factura</h2>
                     <button type="button" onClick={onClose} className="text-gray-400 hover:text-white">
                         <CloseIcon className="h-6 w-6" />
                     </button>
                 </div>
 
-                <div className="p-8 overflow-y-auto flex-grow space-y-6">
+                <div className="p-8 overflow-y-auto flex-grow space-y-8">
+                    {/* Client and Service Info */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <div>
-                            <h3 className="text-lg font-bold text-brand-orange border-b border-brand-orange/30 pb-2">Servicio #{serviceToBill.id}</h3>
-                            <p className="mt-2 text-sm text-brand-text">{serviceToBill.applianceName} ({serviceToBill.applianceType})</p>
+                            <h4 className="font-bold text-brand-text-dark uppercase tracking-wider text-sm mb-2">Facturar a:</h4>
+                            <p className="font-bold text-lg text-white">{`${serviceToBill.client.firstName} ${serviceToBill.client.lastName}`}</p>
+                            <p className="text-sm text-brand-text-dark">{serviceToBill.client.taxId || 'Sin RIF/Cédula'}</p>
+                            <p className="text-sm text-brand-text-dark">{serviceToBill.client.address || 'Sin Dirección'}</p>
                         </div>
-                        <div>
-                            <h3 className="text-lg font-bold text-brand-orange border-b border-brand-orange/30 pb-2">Cliente</h3>
-                            <p className="mt-2 text-sm text-brand-text">{`${serviceToBill.client.firstName} ${serviceToBill.client.lastName}`}</p>
-                            <p className="text-xs text-brand-text-dark">{serviceToBill.client.taxId || 'Sin RIF/Cédula'}</p>
+                        <div className="text-left md:text-right">
+                             <h4 className="font-bold text-brand-text-dark uppercase tracking-wider text-sm mb-2">Servicio Asociado:</h4>
+                            <p className="font-bold text-lg text-white">#{serviceToBill.id}</p>
+                            <p className="text-sm text-brand-text">{serviceToBill.applianceName}</p>
+                            <p className="text-xs text-brand-text-dark">Finalizado: {new Date(serviceToBill.updatedAt).toLocaleDateString('es-ES')}</p>
                         </div>
                     </div>
                     
-                    <div className="pt-6 border-t border-gray-700 space-y-4">
-                       <h3 className="text-lg font-bold text-brand-orange">Resumen de Costos</h3>
-                       <div className="bg-brand-bg-dark/50 p-4 rounded-lg space-y-3">
-                            <div className="flex justify-between items-center text-brand-text-dark">
-                                <span>Subtotal de Repuestos:</span>
-                                <span>{new Intl.NumberFormat('es-VE', { style: 'currency', currency: 'VES' }).format(partsTotal)}</span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                                <label htmlFor="laborCost" className="text-brand-text-dark font-semibold">Costo de Mano de Obra:</label>
-                                <input 
-                                    type="number" 
-                                    id="laborCost" 
-                                    value={laborCost}
-                                    onChange={e => setLaborCost(Number(e.target.value) || 0)}
-                                    className="w-36 sm:w-48 bg-brand-bg-dark border border-gray-600 rounded-md p-2 text-right text-brand-text focus:ring-brand-orange focus:border-brand-orange"
-                                    required
-                                    min="0"
-                                />
-                            </div>
-                            <div className="flex justify-between items-center text-brand-text text-lg pt-3 border-t border-gray-600">
-                                <span className="font-semibold">Subtotal:</span>
-                                <span>{new Intl.NumberFormat('es-VE', { style: 'currency', currency: 'VES' }).format(subtotal)}</span>
+                    {/* Invoice Items Table */}
+                    <div className="overflow-x-auto rounded-lg border border-gray-700">
+                        <table className="min-w-full text-sm">
+                            <thead className="text-left text-brand-text-dark bg-gray-800/50">
+                                <tr>
+                                    <th className="p-3 font-semibold">Descripción</th>
+                                    <th className="p-3 font-semibold text-right">Precio</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-700">
+                                {serviceToBill.partsUsed && serviceToBill.partsUsed.map(part => (
+                                     <tr key={part.id}>
+                                        <td className="p-3">{part.name} <span className="text-xs text-brand-text-dark font-mono">({part.sku})</span></td>
+                                        <td className="p-3 text-right font-mono">{new Intl.NumberFormat('es-VE', { style: 'currency', currency: 'VES' }).format(part.price)}</td>
+                                     </tr>
+                                ))}
+                                <tr>
+                                    <td className="p-3 align-top">
+                                        <label htmlFor="laborCost" className="font-semibold text-brand-text">Mano de Obra</label>
+                                        <p className="text-xs text-brand-text-dark">Costo total por el servicio técnico.</p>
+                                    </td>
+                                    <td className="p-3 text-right">
+                                        <input 
+                                            type="number" 
+                                            id="laborCost" 
+                                            value={laborCost}
+                                            onChange={e => setLaborCost(Number(e.target.value) || 0)}
+                                            className="w-32 bg-brand-bg-dark border border-gray-600 rounded-md p-2 text-right text-brand-text focus:ring-brand-orange focus:border-brand-orange"
+                                            required
+                                            min="0"
+                                            step="any"
+                                        />
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    {/* Totals */}
+                    <div className="flex justify-end">
+                        <div className="w-full max-w-sm space-y-2">
+                             <div className="flex justify-between items-center text-brand-text-dark">
+                                <span>Subtotal:</span>
+                                <span className="font-mono">{new Intl.NumberFormat('es-VE', { style: 'currency', currency: 'VES' }).format(subtotal)}</span>
                             </div>
                              <div className="flex justify-between items-center text-brand-text-dark">
                                 <span>IVA (16%):</span>
-                                <span>{new Intl.NumberFormat('es-VE', { style: 'currency', currency: 'VES' }).format(taxAmount)}</span>
+                                <span className="font-mono">{new Intl.NumberFormat('es-VE', { style: 'currency', currency: 'VES' }).format(taxAmount)}</span>
                             </div>
-                             <div className="flex justify-between items-center text-white text-2xl font-bold pt-2 border-t-2 border-brand-orange/50 mt-2">
-                                <span>Total a Pagar:</span>
-                                <span className="text-brand-orange">{new Intl.NumberFormat('es-VE', { style: 'currency', currency: 'VES' }).format(totalAmount)}</span>
+                             <div className="flex justify-between items-center text-white text-2xl font-bold pt-2 mt-2 border-t-2 border-brand-orange/50">
+                                <span>Total:</span>
+                                <span className="text-brand-orange font-mono">{new Intl.NumberFormat('es-VE', { style: 'currency', currency: 'VES' }).format(totalAmount)}</span>
                             </div>
-                       </div>
+                        </div>
                     </div>
                 </div>
 
-                <div className="px-6 py-4 border-t border-gray-700 flex justify-end space-x-4">
+                <div className="px-6 py-4 border-t border-gray-700 flex justify-end space-x-4 flex-shrink-0">
                     <button type="button" onClick={onClose} className="bg-gray-600 text-white px-6 py-2 rounded-md font-semibold hover:bg-gray-500 transition-colors">Cancelar</button>
                     <button type="submit" className="bg-brand-orange text-white px-6 py-2 rounded-md font-semibold hover:bg-orange-600 transition-colors">Generar Factura</button>
                 </div>
@@ -423,6 +448,18 @@ const Billing: React.FC = () => {
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm]);
+
+  useEffect(() => {
+    if (selectedInvoice) {
+      const updatedInvoice = invoices.find(i => i.id === selectedInvoice.id);
+      if (updatedInvoice) {
+        setSelectedInvoice(updatedInvoice);
+      } else {
+        // Invoice might have been deleted
+        setSelectedInvoice(null);
+      }
+    }
+  }, [invoices]);
 
   useEffect(() => {
     const action = searchParams.get('action');
