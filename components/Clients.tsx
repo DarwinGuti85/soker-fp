@@ -2,10 +2,11 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useData } from '../hooks/useData';
 import { useAuth } from '../hooks/useAuth';
-import { Client } from '../types';
-import { CloseIcon, TrashIcon, EditIcon } from './ui/icons';
+import { Client, ServiceOrder } from '../types';
+import { CloseIcon, TrashIcon, EditIcon, EyeIcon } from './ui/icons';
+import { STATUS_COLORS, STATUS_LABELS_ES } from '../constants';
 
-const ClientFormModal: React.FC<{
+const ClientFormView: React.FC<{
     editingClient: Client | null;
     onClose: () => void;
     onSave: (clientData: Omit<Client, 'id' | 'createdAt'>, id?: string) => void;
@@ -16,6 +17,14 @@ const ClientFormModal: React.FC<{
         : { firstName: '', lastName: '', whatsapp: '', email: '', address: '', taxId: '' };
 
     const [formData, setFormData] = useState(initialFormState);
+
+    useEffect(() => {
+        setFormData(editingClient 
+            ? { ...editingClient } 
+            : { firstName: '', lastName: '', whatsapp: '', email: '', address: '', taxId: '' }
+        );
+    }, [editingClient]);
+
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setFormData(prev => ({...prev, [e.target.id]: e.target.value}));
@@ -31,47 +40,45 @@ const ClientFormModal: React.FC<{
     };
 
     return (
-        <div className="fixed inset-0 bg-black/70 z-50 flex justify-center items-center p-4" aria-modal="true" role="dialog">
-            <div className="bg-brand-bg-light rounded-lg shadow-2xl border border-gray-700/50 w-full max-w-2xl max-h-[90vh] flex flex-col">
-                <div className="sticky top-0 bg-brand-bg-light z-10 px-6 py-4 border-b border-gray-700 flex justify-between items-center">
-                    <h2 className="text-2xl font-bold text-white">{editingClient ? 'Editar Cliente' : 'Añadir Nuevo Cliente'}</h2>
-                    <button onClick={onClose} className="text-gray-400 hover:text-white">
-                        <CloseIcon className="h-6 w-6" />
-                    </button>
-                </div>
-                <form onSubmit={handleSubmit} className="p-6 space-y-6 overflow-y-auto">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <label htmlFor="firstName" className="block text-sm font-medium text-brand-text-dark">Nombres</label>
-                            <input type="text" id="firstName" value={formData.firstName} onChange={handleChange} className="w-full bg-brand-bg-dark border border-gray-600 rounded-md p-2 focus:ring-brand-orange focus:border-brand-orange" required />
-                        </div>
-                        <div className="space-y-2">
-                            <label htmlFor="lastName" className="block text-sm font-medium text-brand-text-dark">Apellidos</label>
-                            <input type="text" id="lastName" value={formData.lastName} onChange={handleChange} className="w-full bg-brand-bg-dark border border-gray-600 rounded-md p-2 focus:ring-brand-orange focus:border-brand-orange" required />
-                        </div>
-                        <div className="space-y-2">
-                            <label htmlFor="whatsapp" className="block text-sm font-medium text-brand-text-dark">WhatsApp</label>
-                            <input type="tel" id="whatsapp" value={formData.whatsapp} onChange={handleChange} className="w-full bg-brand-bg-dark border border-gray-600 rounded-md p-2 focus:ring-brand-orange focus:border-brand-orange" required />
-                        </div>
-                         <div className="space-y-2">
-                            <label htmlFor="taxId" className="block text-sm font-medium text-brand-text-dark">RIF / Cédula (Opcional)</label>
-                            <input type="text" id="taxId" value={formData.taxId || ''} onChange={handleChange} className="w-full bg-brand-bg-dark border border-gray-600 rounded-md p-2 focus:ring-brand-orange focus:border-brand-orange" />
-                        </div>
-                    </div>
-                    <div className="space-y-2">
-                        <label htmlFor="email" className="block text-sm font-medium text-brand-text-dark">Email (Opcional)</label>
-                        <input type="email" id="email" value={formData.email} onChange={handleChange} className="w-full bg-brand-bg-dark border border-gray-600 rounded-md p-2 focus:ring-brand-orange focus:border-brand-orange" />
-                    </div>
-                    <div className="space-y-2">
-                        <label htmlFor="address" className="block text-sm font-medium text-brand-text-dark">Dirección (Opcional)</label>
-                        <input type="text" id="address" value={formData.address} onChange={handleChange} className="w-full bg-brand-bg-dark border border-gray-600 rounded-md p-2 focus:ring-brand-orange focus:border-brand-orange" />
-                    </div>
-                    <div className="flex justify-end space-x-4 pt-4">
-                        <button type="button" onClick={onClose} className="bg-gray-600 text-white px-6 py-2 rounded-md font-semibold hover:bg-gray-500 transition-colors">Cancelar</button>
-                        <button type="submit" className="bg-brand-orange text-white px-6 py-2 rounded-md font-semibold hover:bg-orange-600 transition-colors">{editingClient ? 'Guardar Cambios' : 'Guardar Cliente'}</button>
-                    </div>
-                </form>
+        <div className="bg-brand-orange/10 dark:bg-brand-bg-light rounded-lg shadow-lg border border-brand-orange/30 dark:border-gray-700/50 animate-fadeInUp">
+            <div className="px-6 py-4 border-b border-brand-orange/20 dark:border-gray-700 flex justify-between items-center">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{editingClient ? 'Editar Cliente' : 'Añadir Nuevo Cliente'}</h2>
+                 <button onClick={onClose} className="bg-gray-600 text-white px-4 py-2 rounded-md font-semibold hover:bg-gray-500 transition-colors">
+                    Volver a la lista
+                </button>
             </div>
+            <form onSubmit={handleSubmit} className="p-6 space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                        <label htmlFor="firstName" className="block text-sm font-medium text-brand-text-dark">Nombres</label>
+                        <input type="text" id="firstName" value={formData.firstName} onChange={handleChange} className="w-full bg-brand-bg-dark border border-gray-600 rounded-md p-2 focus:ring-brand-orange focus:border-brand-orange" required />
+                    </div>
+                    <div className="space-y-2">
+                        <label htmlFor="lastName" className="block text-sm font-medium text-brand-text-dark">Apellidos</label>
+                        <input type="text" id="lastName" value={formData.lastName} onChange={handleChange} className="w-full bg-brand-bg-dark border border-gray-600 rounded-md p-2 focus:ring-brand-orange focus:border-brand-orange" required />
+                    </div>
+                    <div className="space-y-2">
+                        <label htmlFor="whatsapp" className="block text-sm font-medium text-brand-text-dark">WhatsApp</label>
+                        <input type="tel" id="whatsapp" value={formData.whatsapp} onChange={handleChange} className="w-full bg-brand-bg-dark border border-gray-600 rounded-md p-2 focus:ring-brand-orange focus:border-brand-orange" required />
+                    </div>
+                        <div className="space-y-2">
+                        <label htmlFor="taxId" className="block text-sm font-medium text-brand-text-dark">RIF / Cédula (Opcional)</label>
+                        <input type="text" id="taxId" value={formData.taxId || ''} onChange={handleChange} className="w-full bg-brand-bg-dark border border-gray-600 rounded-md p-2 focus:ring-brand-orange focus:border-brand-orange" />
+                    </div>
+                </div>
+                <div className="space-y-2">
+                    <label htmlFor="email" className="block text-sm font-medium text-brand-text-dark">Email (Opcional)</label>
+                    <input type="email" id="email" value={formData.email} onChange={handleChange} className="w-full bg-brand-bg-dark border border-gray-600 rounded-md p-2 focus:ring-brand-orange focus:border-brand-orange" />
+                </div>
+                <div className="space-y-2">
+                    <label htmlFor="address" className="block text-sm font-medium text-brand-text-dark">Dirección (Opcional)</label>
+                    <input type="text" id="address" value={formData.address} onChange={handleChange} className="w-full bg-brand-bg-dark border border-gray-600 rounded-md p-2 focus:ring-brand-orange focus:border-brand-orange" />
+                </div>
+                <div className="flex justify-end space-x-4 pt-4">
+                    <button type="button" onClick={onClose} className="bg-gray-600 text-white px-6 py-2 rounded-md font-semibold hover:bg-gray-500 transition-colors">Cancelar</button>
+                    <button type="submit" className="bg-brand-orange text-white px-6 py-2 rounded-md font-semibold hover:bg-orange-600 transition-colors">{editingClient ? 'Guardar Cambios' : 'Guardar Cliente'}</button>
+                </div>
+            </form>
         </div>
     );
 };
@@ -115,14 +122,91 @@ const DeleteConfirmationModal: React.FC<{
     );
 };
 
+const ClientDetailsView: React.FC<{
+    client: Client;
+    onClose: () => void;
+    onEdit: (client: Client) => void;
+}> = ({ client, onClose, onEdit }) => {
+    const { services } = useData();
+
+    const clientServices = useMemo(() => {
+        return services.filter(s => s.client.id === client.id)
+            .sort((a,b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    }, [services, client.id]);
+
+    return (
+        <div className="bg-brand-orange/10 dark:bg-brand-bg-light rounded-lg shadow-lg border border-brand-orange/30 dark:border-gray-700/50 animate-fadeInUp">
+            <div className="px-6 py-4 border-b border-brand-orange/20 dark:border-gray-700 flex flex-col md:flex-row justify-between md:items-center gap-4">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white truncate">Detalles de: {client.firstName} {client.lastName}</h2>
+                <div className="flex items-center space-x-3 self-end md:self-auto">
+                     <button onClick={() => onEdit(client)} className="bg-blue-600 text-white px-4 py-2 rounded-md font-semibold hover:bg-blue-500 transition-colors flex items-center gap-2">
+                        <EditIcon className="h-4 w-4" /> Editar
+                    </button>
+                    <button onClick={onClose} className="bg-gray-600 text-white px-4 py-2 rounded-md font-semibold hover:bg-gray-500 transition-colors">
+                        Volver a la lista
+                    </button>
+                </div>
+            </div>
+            <div className="p-6 space-y-8">
+                {/* Client Info Section */}
+                <div>
+                    <h3 className="text-xl font-bold text-brand-orange mb-4">Información de Contacto</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 bg-brand-bg-dark/20 p-4 rounded-lg">
+                        <p><strong className="text-brand-text-dark">Nombre Completo:</strong> {client.firstName} {client.lastName}</p>
+                        <p><strong className="text-brand-text-dark">RIF / Cédula:</strong> {client.taxId || 'No especificado'}</p>
+                        <p><strong className="text-brand-text-dark">WhatsApp:</strong> {client.whatsapp}</p>
+                        <p><strong className="text-brand-text-dark">Email:</strong> {client.email || 'No especificado'}</p>
+                        <p className="md:col-span-2"><strong className="text-brand-text-dark">Dirección:</strong> {client.address || 'No especificada'}</p>
+                         <p className="md:col-span-2 text-sm text-brand-text-dark">Cliente desde: {new Date(client.createdAt).toLocaleDateString('es-ES')}</p>
+                    </div>
+                </div>
+                
+                {/* Service History Section */}
+                <div>
+                    <h3 className="text-xl font-bold text-brand-orange mb-4">Historial de Servicios ({clientServices.length})</h3>
+                    <div className="overflow-x-auto rounded-lg border border-gray-700">
+                        <table className="min-w-full text-sm">
+                            <thead className="text-left text-brand-text-dark bg-gray-800/50">
+                                <tr>
+                                    <th className="p-3 font-semibold">ID Servicio</th>
+                                    <th className="p-3 font-semibold">Artefacto</th>
+                                    <th className="p-3 font-semibold">Fecha Ingreso</th>
+                                    <th className="p-3 font-semibold">Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-700">
+                                {clientServices.length > 0 ? clientServices.map(service => (
+                                    <tr key={service.id}>
+                                        <td className="p-3 font-mono text-xs">{service.id}</td>
+                                        <td className="p-3">{service.applianceName}</td>
+                                        <td className="p-3">{new Date(service.createdAt).toLocaleDateString('es-ES')}</td>
+                                        <td className="p-3">
+                                            <span className={`px-2 py-1 text-xs font-semibold rounded-full ${STATUS_COLORS[service.status]}`}>
+                                                {STATUS_LABELS_ES[service.status]}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                )) : (
+                                    <tr><td colSpan={4} className="p-4 text-center text-brand-text-dark italic">Este cliente no tiene servicios registrados.</td></tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 
 const Clients: React.FC = () => {
     const { clients, services, addClient, deleteClient, updateClient } = useData();
     const { hasPermission } = useAuth();
-    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isFormVisible, setIsFormVisible] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [clientToDelete, setClientToDelete] = useState<Client | null>(null);
     const [editingClient, setEditingClient] = useState<Client | null>(null);
+    const [selectedClient, setSelectedClient] = useState<Client | null>(null);
 
     const [searchTerm, setSearchTerm] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
@@ -132,14 +216,22 @@ const Clients: React.FC = () => {
         setCurrentPage(1);
     }, [searchTerm]);
 
-    const handleOpenModal = (client: Client | null) => {
+    const handleOpenForm = (client: Client | null) => {
         setEditingClient(client);
-        setIsModalOpen(true);
+        setIsFormVisible(true);
     };
 
-    const handleCloseModal = () => {
-        setIsModalOpen(false);
+    const handleCloseForm = () => {
+        setIsFormVisible(false);
         setEditingClient(null);
+    };
+    
+    const handleViewDetails = (client: Client) => {
+        setSelectedClient(client);
+    };
+    
+    const handleCloseDetails = () => {
+        setSelectedClient(null);
     };
 
     const filteredClients = useMemo(() => {
@@ -171,7 +263,10 @@ const Clients: React.FC = () => {
         } else {
             addClient(clientData);
         }
-        handleCloseModal();
+        handleCloseForm();
+        if(selectedClient && id === selectedClient.id) {
+             setSelectedClient(prev => prev ? ({ ...prev, ...clientData }) : null);
+        }
     };
 
     const handleDeleteClick = (client: Client) => {
@@ -197,13 +292,6 @@ const Clients: React.FC = () => {
 
     return (
         <div className="space-y-6 animate-fadeInUp">
-            {isModalOpen && 
-                <ClientFormModal
-                    editingClient={editingClient}
-                    onClose={handleCloseModal}
-                    onSave={handleSave}
-                />
-            }
             {isDeleteModalOpen && clientToDelete &&
                 <DeleteConfirmationModal
                     client={clientToDelete}
@@ -212,107 +300,126 @@ const Clients: React.FC = () => {
                     hasServices={clientHasServices(clientToDelete.id)}
                 />
             }
-            <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
-                <div>
-                    <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Clientes</h1>
-                    <p className="text-gray-600 dark:text-brand-text-dark mt-1">Busca y gestiona la información de tus clientes.</p>
-                </div>
-                {hasPermission('clients', 'edit') && (
-                    <button
-                        onClick={() => handleOpenModal(null)}
-                        className="bg-brand-orange text-white px-4 py-2 rounded-md font-semibold hover:bg-orange-600 transition-colors self-start md:self-auto"
-                    >
-                        Añadir Nuevo Cliente
-                    </button>
-                )}
-            </div>
 
-            <div className="mt-4">
-                <input
-                    type="text"
-                    placeholder="Buscar por nombre, documento o WhatsApp..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full md:w-1/2 lg:w-1/3 bg-white dark:bg-brand-bg-light border border-gray-300 dark:border-gray-700 rounded-md p-2.5 text-gray-900 dark:text-brand-text focus:ring-brand-orange focus:border-brand-orange transition-colors"
+            {isFormVisible ? (
+                <ClientFormView
+                    editingClient={editingClient}
+                    onClose={handleCloseForm}
+                    onSave={handleSave}
                 />
-            </div>
-
-
-            <div className="bg-brand-orange/10 dark:bg-brand-bg-light rounded-lg shadow-lg border border-brand-orange/30 dark:border-gray-700/50 overflow-hidden">
-                <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-brand-orange/20 dark:divide-gray-700">
-                        <thead className="bg-black/5 dark:bg-gray-800/50">
-                            <tr>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-brand-text-dark uppercase tracking-wider">Nombre</th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-brand-text-dark uppercase tracking-wider">Contacto</th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-brand-text-dark uppercase tracking-wider">Dirección</th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-brand-text-dark uppercase tracking-wider">Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody className="dark:bg-brand-bg-light divide-y divide-brand-orange/20 dark:divide-gray-700">
-                            {currentClients.length > 0 ? (
-                                currentClients.map((client, index) => (
-                                    <tr key={client.id} className="hover:bg-brand-orange/20 dark:hover:bg-gray-800/40 transition-colors animate-fadeInUp" style={{ animationDelay: `${Math.min(index * 50, 500)}ms`}}>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-sm font-medium text-gray-900 dark:text-brand-text">{`${client.firstName} ${client.lastName}`}</div>
-                                            <div className="text-sm text-gray-600 dark:text-brand-text-dark">{client.taxId || 'N/A'}</div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-brand-text-dark">
-                                            <div>{client.whatsapp || 'N/A'}</div>
-                                            <div>{client.email || 'N/A'}</div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-brand-text-dark">{client.address}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-left text-sm font-medium">
-                                            <div className="flex items-center space-x-4">
-                                                {hasPermission('clients', 'edit') && (
-                                                    <button onClick={() => handleOpenModal(client)} className="text-brand-orange hover:text-orange-400 transition-colors">
-                                                        <EditIcon className="w-5 h-5" />
-                                                    </button>
-                                                )}
-                                                {hasPermission('clients', 'delete') && (
-                                                    <button onClick={() => handleDeleteClick(client)} className="text-red-500 hover:text-red-400 transition-colors">
-                                                        <TrashIcon className="w-5 h-5" />
-                                                    </button>
-                                                )}
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))
-                            ) : (
-                                <tr>
-                                    <td colSpan={4} className="text-center py-10 px-6 text-gray-600 dark:text-brand-text-dark">
-                                        No se encontraron clientes que coincidan con la búsqueda.
-                                    </td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
-                </div>
-
-                {pageCount > 1 && (
-                    <div className="px-6 py-4 flex items-center justify-between border-t border-brand-orange/20 dark:border-gray-700">
-                        <span className="text-sm text-gray-600 dark:text-brand-text-dark">
-                            Página {currentPage} de {pageCount} ({filteredClients.length} resultados)
-                        </span>
-                        <div className="flex items-center space-x-2">
-                            <button
-                                onClick={() => paginate(currentPage - 1)}
-                                disabled={currentPage === 1}
-                                className="px-3 py-1 rounded-md bg-gray-200 dark:bg-brand-bg-dark text-sm font-semibold text-gray-800 dark:text-brand-text enabled:hover:bg-gray-300 dark:enabled:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                                Anterior
-                            </button>
-                            <button
-                                onClick={() => paginate(currentPage + 1)}
-                                disabled={currentPage === pageCount}
-                                className="px-3 py-1 rounded-md bg-gray-200 dark:bg-brand-bg-dark text-sm font-semibold text-gray-800 dark:text-brand-text enabled:hover:bg-gray-300 dark:enabled:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                                Siguiente
-                            </button>
+            ) : selectedClient ? (
+                <ClientDetailsView
+                    client={selectedClient}
+                    onClose={handleCloseDetails}
+                    onEdit={handleOpenForm}
+                />
+            ) : (
+                 <>
+                    <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
+                        <div>
+                            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Clientes</h1>
+                            <p className="text-gray-600 dark:text-brand-text-dark mt-1">Busca y gestiona la información de tus clientes.</p>
                         </div>
+                        {hasPermission('clients', 'edit') && (
+                            <button
+                                onClick={() => handleOpenForm(null)}
+                                className="bg-brand-orange text-white px-4 py-2 rounded-md font-semibold hover:bg-orange-600 transition-colors self-start md:self-auto"
+                            >
+                                Añadir Nuevo Cliente
+                            </button>
+                        )}
                     </div>
-                )}
-            </div>
+
+                    <div className="mt-4">
+                        <input
+                            type="text"
+                            placeholder="Buscar por nombre, documento o WhatsApp..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="w-full md:w-1/2 lg:w-1/3 bg-white dark:bg-brand-bg-light border border-gray-300 dark:border-gray-700 rounded-md p-2.5 text-gray-900 dark:text-brand-text focus:ring-brand-orange focus:border-brand-orange transition-colors"
+                        />
+                    </div>
+
+                    <div className="bg-brand-orange/10 dark:bg-brand-bg-light rounded-lg shadow-lg border border-brand-orange/30 dark:border-gray-700/50 overflow-hidden">
+                        <div className="overflow-x-auto">
+                            <table className="min-w-full divide-y divide-brand-orange/20 dark:divide-gray-700">
+                                <thead className="bg-black/5 dark:bg-gray-800/50">
+                                    <tr>
+                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-brand-text-dark uppercase tracking-wider">Nombre</th>
+                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-brand-text-dark uppercase tracking-wider">Contacto</th>
+                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-brand-text-dark uppercase tracking-wider">Dirección</th>
+                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-brand-text-dark uppercase tracking-wider">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="dark:bg-brand-bg-light divide-y divide-brand-orange/20 dark:divide-gray-700">
+                                    {currentClients.length > 0 ? (
+                                        currentClients.map((client, index) => (
+                                            <tr key={client.id} className="hover:bg-brand-orange/20 dark:hover:bg-gray-800/40 transition-colors animate-fadeInUp" style={{ animationDelay: `${Math.min(index * 50, 500)}ms`}}>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <div className="text-sm font-medium text-gray-900 dark:text-brand-text">{`${client.firstName} ${client.lastName}`}</div>
+                                                    <div className="text-sm text-gray-600 dark:text-brand-text-dark">{client.taxId || 'N/A'}</div>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-brand-text-dark">
+                                                    <div>{client.whatsapp || 'N/A'}</div>
+                                                    <div>{client.email || 'N/A'}</div>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-brand-text-dark">{client.address}</td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-left text-sm font-medium">
+                                                    <div className="flex items-center space-x-4">
+                                                        <button onClick={() => handleViewDetails(client)} className="text-blue-500 hover:text-blue-400 transition-colors">
+                                                            <EyeIcon className="w-5 h-5" />
+                                                        </button>
+                                                        {hasPermission('clients', 'edit') && (
+                                                            <button onClick={() => handleOpenForm(client)} className="text-brand-orange hover:text-orange-400 transition-colors">
+                                                                <EditIcon className="w-5 h-5" />
+                                                            </button>
+                                                        )}
+                                                        {hasPermission('clients', 'delete') && (
+                                                            <button onClick={() => handleDeleteClick(client)} className="text-red-500 hover:text-red-400 transition-colors">
+                                                                <TrashIcon className="w-5 h-5" />
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    ) : (
+                                        <tr>
+                                            <td colSpan={4} className="text-center py-10 px-6 text-gray-600 dark:text-brand-text-dark">
+                                                No se encontraron clientes que coincidan con la búsqueda.
+                                            </td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        {pageCount > 1 && (
+                            <div className="px-6 py-4 flex items-center justify-between border-t border-brand-orange/20 dark:border-gray-700">
+                                <span className="text-sm text-gray-600 dark:text-brand-text-dark">
+                                    Página {currentPage} de {pageCount} ({filteredClients.length} resultados)
+                                </span>
+                                <div className="flex items-center space-x-2">
+                                    <button
+                                        onClick={() => paginate(currentPage - 1)}
+                                        disabled={currentPage === 1}
+                                        className="px-3 py-1 rounded-md bg-gray-200 dark:bg-brand-bg-dark text-sm font-semibold text-gray-800 dark:text-brand-text enabled:hover:bg-gray-300 dark:enabled:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        Anterior
+                                    </button>
+                                    <button
+                                        onClick={() => paginate(currentPage + 1)}
+                                        disabled={currentPage === pageCount}
+                                        className="px-3 py-1 rounded-md bg-gray-200 dark:bg-brand-bg-dark text-sm font-semibold text-gray-800 dark:text-brand-text enabled:hover:bg-gray-300 dark:enabled:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        Siguiente
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </>
+            )}
         </div>
     );
 };

@@ -14,13 +14,6 @@ declare global {
     }
 }
 
-const DetailItem: React.FC<{ label: string; children: React.ReactNode; className?: string }> = ({ label, children, className }) => (
-    <div className={className}>
-        <h4 className="text-sm font-semibold text-brand-text-dark uppercase tracking-wider">{label}</h4>
-        <div className="text-brand-text mt-1">{children}</div>
-    </div>
-);
-
 const NewInvoiceModal: React.FC<{
     isOpen: boolean;
     onClose: () => void;
@@ -67,7 +60,7 @@ const NewInvoiceModal: React.FC<{
     if (!isOpen || !serviceToBill) return null;
 
     return (
-        <div className="fixed inset-0 bg-black/70 z-50 flex justify-center items-center p-4" aria-modal="true" role="dialog">
+        <div className="fixed inset-0 bg-black/70 z-50 flex justify-center items-center md:items-start p-4 md:pt-20 overflow-y-auto" aria-modal="true" role="dialog">
             <form onSubmit={handleFormSubmit} className="bg-brand-bg-light rounded-lg shadow-2xl border border-gray-700/50 w-full max-w-3xl max-h-[90vh] flex flex-col">
                 <div className="px-6 py-4 border-b border-gray-700 flex justify-between items-center">
                     <h2 className="text-2xl font-bold text-white">Crear Factura</h2>
@@ -103,7 +96,7 @@ const NewInvoiceModal: React.FC<{
                                     id="laborCost" 
                                     value={laborCost}
                                     onChange={e => setLaborCost(Number(e.target.value) || 0)}
-                                    className="w-48 bg-brand-bg-dark border border-gray-600 rounded-md p-2 text-right text-brand-text focus:ring-brand-orange focus:border-brand-orange"
+                                    className="w-36 sm:w-48 bg-brand-bg-dark border border-gray-600 rounded-md p-2 text-right text-brand-text focus:ring-brand-orange focus:border-brand-orange"
                                     required
                                     min="0"
                                 />
@@ -133,28 +126,23 @@ const NewInvoiceModal: React.FC<{
     );
 };
 
-const InvoiceDetailsModal: React.FC<{
-    isOpen: boolean;
+const InvoiceDetailsView: React.FC<{
+    invoice: Invoice;
     onClose: () => void;
-    invoice: Invoice | null;
-}> = ({ isOpen, onClose, invoice }) => {
+}> = ({ invoice, onClose }) => {
     const { updateInvoice, companyInfo } = useData();
     const { hasPermission } = useAuth();
     const [isEditingStatus, setIsEditingStatus] = useState(false);
     const [isPrinting, setIsPrinting] = useState(false);
     const printRef = useRef<HTMLDivElement>(null);
 
-    const [newStatus, setNewStatus] = useState(invoice?.status || InvoiceStatus.UNPAID);
+    const [newStatus, setNewStatus] = useState(invoice.status);
 
     useEffect(() => {
-        if (invoice) {
-            setNewStatus(invoice.status);
-            setIsEditingStatus(false);
-        }
+        setNewStatus(invoice.status);
+        setIsEditingStatus(false);
     }, [invoice]);
 
-    if (!isOpen || !invoice) return null;
-    
     const handleSaveStatus = () => {
         updateInvoice(invoice.id, { status: newStatus });
         setIsEditingStatus(false);
@@ -194,142 +182,140 @@ const InvoiceDetailsModal: React.FC<{
     const isHistorical = !invoice.serviceOrder;
 
     return (
-        <div className="fixed inset-0 bg-black/70 z-50 flex justify-center items-center p-4" aria-modal="true" role="dialog">
-            <div className="bg-brand-bg-light rounded-lg shadow-2xl border border-gray-700/50 w-full max-w-4xl max-h-[90vh] flex flex-col">
-                <div className="px-6 py-4 border-b border-gray-700 flex justify-between items-center">
-                    <h2 className="text-2xl font-bold text-white">Detalles de Factura: {invoice.id}</h2>
-                    <button onClick={onClose} className="text-gray-400 hover:text-white">
-                        <CloseIcon className="h-6 w-6" />
-                    </button>
-                </div>
-                
-                <div className="p-8 overflow-y-auto flex-grow bg-brand-bg-light text-brand-text">
-                    <div ref={printRef} className="bg-brand-bg-dark p-8 rounded-lg">
-                        <header className="flex justify-between items-start pb-6 border-b border-gray-600">
-                            <div>
-                                <h3 className="text-2xl font-bold text-white">{companyInfo.name}</h3>
-                                <p className="text-sm text-brand-text-dark">RIF: {companyInfo.taxId}</p>
-                                <p className="text-sm text-brand-text-dark">{companyInfo.address}</p>
-                                <p className="text-sm text-brand-text-dark">{companyInfo.email} | {companyInfo.phone}</p>
-                            </div>
-                            <div className="text-right">
-                                <h2 className="text-3xl font-bold text-brand-orange uppercase">Factura</h2>
-                                <p className="text-lg text-white font-mono">{invoice.id}</p>
-                                <p className="text-sm text-brand-text-dark mt-2">Fecha: {new Date(invoice.issueDate).toLocaleDateString('es-ES')}</p>
-                            </div>
-                        </header>
+        <div className="bg-brand-orange/10 dark:bg-brand-bg-light rounded-lg shadow-lg border border-brand-orange/30 dark:border-gray-700/50 animate-fadeInUp">
+            <div className="px-6 py-4 border-b border-brand-orange/20 dark:border-gray-700 flex justify-between items-center">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Detalles de Factura: {invoice.id}</h2>
+                <button onClick={onClose} className="bg-gray-600 text-white px-4 py-2 rounded-md font-semibold hover:bg-gray-500 transition-colors">
+                    Volver a la lista
+                </button>
+            </div>
+            
+            <div className="p-4 sm:p-8">
+                <div ref={printRef} className="bg-brand-bg-dark p-8 rounded-lg text-brand-text">
+                    <header className="flex flex-col sm:flex-row justify-between items-start pb-6 border-b border-gray-600 gap-4">
+                        <div>
+                            <h3 className="text-2xl font-bold text-white">{companyInfo.name}</h3>
+                            <p className="text-sm text-brand-text-dark">RIF: {companyInfo.taxId}</p>
+                            <p className="text-sm text-brand-text-dark">{companyInfo.address}</p>
+                            <p className="text-sm text-brand-text-dark">{companyInfo.email} | {companyInfo.phone}</p>
+                        </div>
+                        <div className="text-left sm:text-right w-full sm:w-auto">
+                            <h2 className="text-3xl font-bold text-brand-orange uppercase">Factura</h2>
+                            <p className="text-lg text-white font-mono">{invoice.id}</p>
+                            <p className="text-sm text-brand-text-dark mt-2">Fecha: {new Date(invoice.issueDate).toLocaleDateString('es-ES')}</p>
+                        </div>
+                    </header>
 
-                        <section className="grid grid-cols-2 gap-8 my-6">
-                            <div>
-                                <h4 className="font-bold text-brand-text-dark uppercase tracking-wider text-sm mb-2">Facturar a:</h4>
-                                <p className="font-bold text-lg text-white">{isHistorical ? invoice.clientName : `${invoice.serviceOrder.client.firstName} ${invoice.serviceOrder.client.lastName}`}</p>
-                                {!isHistorical && <p className="text-sm">{invoice.serviceOrder.client.taxId || 'N/A'}</p>}
-                                {!isHistorical && <p className="text-sm">{invoice.serviceOrder.client.address}</p>}
-                                {!isHistorical && <p className="text-sm">{invoice.serviceOrder.client.email}</p>}
-                            </div>
-                            <div className="text-right flex flex-col items-end">
-                                <h4 className="font-bold text-brand-text-dark uppercase tracking-wider text-sm mb-2">Total a Pagar:</h4>
-                                <p className="text-4xl font-bold text-brand-orange">{new Intl.NumberFormat('es-VE', { style: 'currency', currency: 'VES' }).format(invoice.totalAmount)}</p>
-                                <span className={`mt-2 px-3 py-1 text-sm font-semibold rounded-full ${INVOICE_STATUS_COLORS[invoice.status]}`}>{INVOICE_STATUS_LABELS_ES[invoice.status]}</span>
-                            </div>
-                        </section>
+                    <section className="grid grid-cols-1 sm:grid-cols-2 gap-8 my-6">
+                        <div>
+                            <h4 className="font-bold text-brand-text-dark uppercase tracking-wider text-sm mb-2">Facturar a:</h4>
+                            <p className="font-bold text-lg text-white">{isHistorical ? invoice.clientName : `${invoice.serviceOrder.client.firstName} ${invoice.serviceOrder.client.lastName}`}</p>
+                            {!isHistorical && <p className="text-sm">{invoice.serviceOrder.client.taxId || 'N/A'}</p>}
+                            {!isHistorical && <p className="text-sm">{invoice.serviceOrder.client.address}</p>}
+                            {!isHistorical && <p className="text-sm">{invoice.serviceOrder.client.email}</p>}
+                        </div>
+                        <div className="text-left sm:text-right flex flex-col items-start sm:items-end">
+                            <h4 className="font-bold text-brand-text-dark uppercase tracking-wider text-sm mb-2">Total a Pagar:</h4>
+                            <p className="text-4xl font-bold text-brand-orange">{new Intl.NumberFormat('es-VE', { style: 'currency', currency: 'VES' }).format(invoice.totalAmount)}</p>
+                            <span className={`mt-2 px-3 py-1 text-sm font-semibold rounded-full ${INVOICE_STATUS_COLORS[invoice.status]}`}>{INVOICE_STATUS_LABELS_ES[invoice.status]}</span>
+                        </div>
+                    </section>
 
-                        <section>
-                            <h4 className="font-bold text-brand-text-dark uppercase tracking-wider text-sm mb-2">Descripción del Servicio:</h4>
-                            <div className="bg-brand-bg-light p-4 rounded-lg border border-gray-700">
-                                {isHistorical ? (
-                                    <p>{invoice.applianceDescription}</p>
-                                ) : (
-                                    <>
-                                        <p><strong>Artefacto:</strong> {invoice.serviceOrder.applianceName} ({invoice.serviceOrder.applianceType})</p>
-                                        <p><strong>Reporte Cliente:</strong> {invoice.serviceOrder.clientDescription}</p>
-                                    </>
-                                )}
-                            </div>
-                        </section>
-
-                        {!isHistorical ? (
-                            <>
-                            <section className="mt-6">
-                                <table className="w-full text-sm">
-                                    <thead className="border-b-2 border-gray-600 text-brand-text-dark">
-                                        <tr>
-                                            <th className="text-left font-semibold uppercase py-2">Descripción</th>
-                                            <th className="text-right font-semibold uppercase py-2">Total</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr className="border-b border-gray-700">
-                                            <td className="py-3">Mano de Obra</td>
-                                            <td className="text-right font-mono">{new Intl.NumberFormat('es-VE', { style: 'currency', currency: 'VES' }).format(invoice.laborCost)}</td>
-                                        </tr>
-                                        {invoice.serviceOrder.partsUsed && invoice.serviceOrder.partsUsed.length > 0 && (
-                                            <tr className="border-b border-gray-700">
-                                                <td className="py-3">
-                                                    <p>Repuestos Utilizados:</p>
-                                                    <ul className="list-disc pl-5 mt-1 text-xs text-brand-text-dark">
-                                                        {invoice.serviceOrder.partsUsed.map(p => <li key={p.id}>{p.name}</li>)}
-                                                    </ul>
-                                                </td>
-                                                <td className="text-right align-top pt-3 font-mono">{new Intl.NumberFormat('es-VE', { style: 'currency', currency: 'VES' }).format(invoice.partsTotal)}</td>
-                                            </tr>
-                                        )}
-                                    </tbody>
-                                </table>
-                            </section>
-                            <section className="flex justify-end mt-6">
-                                <div className="w-full max-w-xs text-sm">
-                                    <LineItem description="Subtotal" amount={invoice.subtotal} />
-                                    <LineItem description="IVA (16%)" amount={invoice.taxAmount} />
-                                    <div className="flex justify-between items-center py-2 mt-2 border-t-2 border-gray-600">
-                                        <span className="text-base font-bold uppercase">Total</span>
-                                        <span className="text-base font-bold font-mono">{new Intl.NumberFormat('es-VE', { style: 'currency', currency: 'VES' }).format(invoice.totalAmount)}</span>
-                                    </div>
-                                </div>
-                            </section>
-                            </>
-                        ) : (
-                             <section className="flex justify-end mt-6">
-                                <div className="w-full max-w-xs text-sm">
-                                    <div className="flex justify-between items-center py-2 mt-2 border-t-2 border-gray-600">
-                                        <span className="text-base font-bold uppercase">Total</span>
-                                        <span className="text-base font-bold font-mono">{new Intl.NumberFormat('es-VE', { style: 'currency', currency: 'VES' }).format(invoice.totalAmount)}</span>
-                                    </div>
-                                </div>
-                            </section>
-                        )}
-                    </div>
-                </div>
-
-                <div className="px-6 py-4 border-t border-gray-700 flex justify-between items-center">
-                    <div className="flex items-center gap-2">
-                        {hasPermission('billing', 'edit') && (
-                            <>
-                            {!isEditingStatus ? (
-                                <button onClick={() => setIsEditingStatus(true)} className="bg-blue-600 text-white px-4 py-2 rounded-md font-semibold hover:bg-blue-500">Cambiar Estado</button>
+                    <section>
+                        <h4 className="font-bold text-brand-text-dark uppercase tracking-wider text-sm mb-2">Descripción del Servicio:</h4>
+                        <div className="bg-brand-bg-light p-4 rounded-lg border border-gray-700">
+                            {isHistorical ? (
+                                <p>{invoice.applianceDescription}</p>
                             ) : (
-                                <div className="flex items-center gap-2">
-                                    <select value={newStatus} onChange={e => setNewStatus(e.target.value as InvoiceStatus)} className="bg-brand-bg-dark border border-gray-600 rounded-md p-2 text-sm text-brand-text focus:ring-brand-orange focus:border-brand-orange">
-                                        {INVOICE_STATUSES.map(s => <option key={s} value={s}>{INVOICE_STATUS_LABELS_ES[s]}</option>)}
-                                    </select>
-                                    <button onClick={handleSaveStatus} className="bg-green-600 text-white p-2 rounded-md font-semibold hover:bg-green-500"><SaveIcon className="h-5 w-5"/></button>
-                                    <button onClick={() => setIsEditingStatus(false)} className="bg-gray-600 text-white p-2 rounded-md font-semibold hover:bg-gray-500"><CloseIcon className="h-5 w-5"/></button>
-                                </div>
+                                <>
+                                    <p><strong>Artefacto:</strong> {invoice.serviceOrder.applianceName} ({invoice.serviceOrder.applianceType})</p>
+                                    <p><strong>Reporte Cliente:</strong> {invoice.serviceOrder.clientDescription}</p>
+                                </>
                             )}
-                            </>
+                        </div>
+                    </section>
+
+                    {!isHistorical ? (
+                        <>
+                        <section className="mt-6">
+                            <table className="w-full text-sm">
+                                <thead className="border-b-2 border-gray-600 text-brand-text-dark">
+                                    <tr>
+                                        <th className="text-left font-semibold uppercase py-2">Descripción</th>
+                                        <th className="text-right font-semibold uppercase py-2">Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr className="border-b border-gray-700">
+                                        <td className="py-3">Mano de Obra</td>
+                                        <td className="text-right font-mono">{new Intl.NumberFormat('es-VE', { style: 'currency', currency: 'VES' }).format(invoice.laborCost)}</td>
+                                    </tr>
+                                    {invoice.serviceOrder.partsUsed && invoice.serviceOrder.partsUsed.length > 0 && (
+                                        <tr className="border-b border-gray-700">
+                                            <td className="py-3">
+                                                <p>Repuestos Utilizados:</p>
+                                                <ul className="list-disc pl-5 mt-1 text-xs text-brand-text-dark">
+                                                    {invoice.serviceOrder.partsUsed.map(p => <li key={p.id}>{p.name}</li>)}
+                                                </ul>
+                                            </td>
+                                            <td className="text-right align-top pt-3 font-mono">{new Intl.NumberFormat('es-VE', { style: 'currency', currency: 'VES' }).format(invoice.partsTotal)}</td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </section>
+                        <section className="flex justify-end mt-6">
+                            <div className="w-full max-w-xs text-sm">
+                                <LineItem description="Subtotal" amount={invoice.subtotal} />
+                                <LineItem description="IVA (16%)" amount={invoice.taxAmount} />
+                                <div className="flex justify-between items-center py-2 mt-2 border-t-2 border-gray-600">
+                                    <span className="text-base font-bold uppercase">Total</span>
+                                    <span className="text-base font-bold font-mono">{new Intl.NumberFormat('es-VE', { style: 'currency', currency: 'VES' }).format(invoice.totalAmount)}</span>
+                                </div>
+                            </div>
+                        </section>
+                        </>
+                    ) : (
+                         <section className="flex justify-end mt-6">
+                            <div className="w-full max-w-xs text-sm">
+                                <div className="flex justify-between items-center py-2 mt-2 border-t-2 border-gray-600">
+                                    <span className="text-base font-bold uppercase">Total</span>
+                                    <span className="text-base font-bold font-mono">{new Intl.NumberFormat('es-VE', { style: 'currency', currency: 'VES' }).format(invoice.totalAmount)}</span>
+                                </div>
+                            </div>
+                        </section>
+                    )}
+                </div>
+            </div>
+
+            <div className="px-6 py-4 border-t border-brand-orange/20 dark:border-gray-700 flex flex-col-reverse sm:flex-row justify-between items-center gap-4">
+                <div className="w-full sm:w-auto flex items-center gap-2 justify-center sm:justify-start">
+                    {hasPermission('billing', 'edit') && (
+                        <>
+                        {!isEditingStatus ? (
+                            <button onClick={() => setIsEditingStatus(true)} className="bg-blue-600 text-white px-4 py-2 rounded-md font-semibold hover:bg-blue-500">Cambiar Estado</button>
+                        ) : (
+                            <div className="flex items-center gap-2 w-full justify-center">
+                                <select value={newStatus} onChange={e => setNewStatus(e.target.value as InvoiceStatus)} className="bg-brand-bg-dark border border-gray-600 rounded-md p-2 text-sm text-brand-text focus:ring-brand-orange focus:border-brand-orange flex-grow sm:flex-grow-0">
+                                    {INVOICE_STATUSES.map(s => <option key={s} value={s}>{INVOICE_STATUS_LABELS_ES[s]}</option>)}
+                                </select>
+                                <button onClick={handleSaveStatus} className="bg-green-600 text-white p-2 rounded-md font-semibold hover:bg-green-500"><SaveIcon className="h-5 w-5"/></button>
+                                <button onClick={() => setIsEditingStatus(false)} className="bg-gray-600 text-white p-2 rounded-md font-semibold hover:bg-gray-500"><CloseIcon className="h-5 w-5"/></button>
+                            </div>
                         )}
-                    </div>
-                    <div className="flex items-center space-x-3">
-                      <button onClick={handleDownloadPdf} disabled={isPrinting} className="bg-gray-200 text-black px-4 py-2 rounded-md font-semibold hover:bg-gray-300 disabled:bg-gray-400 disabled:cursor-wait">
-                        {isPrinting ? 'Generando PDF...' : 'Descargar PDF'}
-                      </button>
-                      <button onClick={onClose} className="bg-brand-orange text-white px-4 py-2 rounded-md font-semibold hover:bg-orange-600">Cerrar</button>
-                    </div>
+                        </>
+                    )}
+                </div>
+                <div className="w-full sm:w-auto flex items-center justify-center sm:justify-end space-x-3">
+                    <button onClick={handleDownloadPdf} disabled={isPrinting} className="bg-gray-200 text-black px-4 py-2 rounded-md font-semibold hover:bg-gray-300 disabled:bg-gray-400 disabled:cursor-wait">
+                    {isPrinting ? 'Generando PDF...' : 'Descargar PDF'}
+                    </button>
                 </div>
             </div>
         </div>
     );
 };
+
 
 const SelectServiceToBillModal: React.FC<{
     isOpen: boolean;
@@ -426,7 +412,6 @@ const Billing: React.FC = () => {
   const itemsPerPage = 10;
   
   const [isNewInvoiceModalOpen, setIsNewInvoiceModalOpen] = useState(false);
-  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [isSelectServiceModalOpen, setIsSelectServiceModalOpen] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   
@@ -480,14 +465,12 @@ const Billing: React.FC = () => {
       setCurrentPage(pageNumber);
   };
 
-  const handleOpenDetailsModal = (invoice: Invoice) => {
+  const handleOpenDetails = (invoice: Invoice) => {
     setSelectedInvoice(invoice);
-    setIsDetailsModalOpen(true);
   };
 
-  const handleCloseDetailsModal = () => {
+  const handleCloseDetails = () => {
     setSelectedInvoice(null);
-    setIsDetailsModalOpen(false);
   };
   
   const handleCloseNewInvoiceModal = () => {
@@ -505,118 +488,122 @@ const Billing: React.FC = () => {
 
   return (
     <div className="space-y-6 animate-fadeInUp">
-      {canEditBilling && (
-        <>
-        <NewInvoiceModal 
-            isOpen={isNewInvoiceModalOpen}
-            onClose={handleCloseNewInvoiceModal}
-            serviceToBill={serviceToBill}
-        />
-        <SelectServiceToBillModal
-            isOpen={isSelectServiceModalOpen}
-            onClose={() => setIsSelectServiceModalOpen(false)}
-            onSelectService={handleSelectService}
-        />
-        </>
-      )}
-      <InvoiceDetailsModal 
-        isOpen={isDetailsModalOpen}
-        onClose={handleCloseDetailsModal}
-        invoice={selectedInvoice}
-      />
-
-      <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
-        <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Facturación</h1>
-            <p className="text-gray-600 dark:text-brand-text-dark mt-1">Gestiona y consulta todas las facturas.</p>
-        </div>
         {canEditBilling && (
-            <button 
-            onClick={() => setIsSelectServiceModalOpen(true)}
-            className="bg-brand-orange text-white px-4 py-2 rounded-md font-semibold hover:bg-orange-600 transition-colors self-start md:self-center"
-            >
-            Crear Nueva Factura
-            </button>
+            <>
+                <NewInvoiceModal 
+                    isOpen={isNewInvoiceModalOpen}
+                    onClose={handleCloseNewInvoiceModal}
+                    serviceToBill={serviceToBill}
+                />
+                <SelectServiceToBillModal
+                    isOpen={isSelectServiceModalOpen}
+                    onClose={() => setIsSelectServiceModalOpen(false)}
+                    onSelectService={handleSelectService}
+                />
+            </>
         )}
-      </div>
 
-      <div className="space-y-4">
-         <input 
-            type="text"
-            placeholder="Buscar por # Factura, Cliente, o # Servicio..."
-            value={searchTerm}
-            onChange={e => setSearchTerm(e.target.value)}
-            className="w-full md:w-1/2 lg:w-1/3 bg-white dark:bg-brand-bg-light border border-gray-300 dark:border-gray-700 rounded-md p-2.5 text-gray-900 dark:text-brand-text focus:ring-brand-orange focus:border-brand-orange"
-        />
-        
-        <div className="bg-brand-orange/10 dark:bg-brand-bg-light rounded-lg shadow-lg border border-brand-orange/30 dark:border-gray-700/50 overflow-hidden">
-            <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-brand-orange/20 dark:divide-gray-700">
-                    <thead className="bg-black/5 dark:bg-gray-800/50">
-                    <tr>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-brand-text-dark uppercase tracking-wider">Factura #</th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-brand-text-dark uppercase tracking-wider">Cliente</th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-brand-text-dark uppercase tracking-wider">Fecha de Emisión</th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-brand-text-dark uppercase tracking-wider">Total</th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-brand-text-dark uppercase tracking-wider">Estado</th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-brand-text-dark uppercase tracking-wider">Acciones</th>
-                    </tr>
-                    </thead>
-                    <tbody className="dark:bg-brand-bg-light divide-y divide-brand-orange/20 dark:divide-gray-700">
-                    {currentInvoices.map((invoice, index) => (
-                        <tr key={invoice.id} className="hover:bg-brand-orange/20 dark:hover:bg-gray-800/40 transition-colors animate-fadeInUp" style={{ animationDelay: `${Math.min(index * 50, 500)}ms`}}>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900 dark:text-brand-text">{invoice.id}</td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                                <div className="text-sm text-gray-900 dark:text-brand-text">{invoice.clientName || `${invoice.serviceOrder?.client.firstName} ${invoice.serviceOrder?.client.lastName}`}</div>
-                                <div className="text-xs text-gray-600 dark:text-brand-text-dark">Servicio: {invoice.serviceOrder?.id || 'Histórico'}</div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-brand-text-dark">{new Date(invoice.issueDate).toLocaleDateString('es-ES')}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-brand-text-dark">{new Intl.NumberFormat('es-VE', { style: 'currency', currency: 'VES' }).format(invoice.totalAmount)}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm">
-                                <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${INVOICE_STATUS_COLORS[invoice.status]}`}>
-                                    {INVOICE_STATUS_LABELS_ES[invoice.status]}
-                                </span>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-left text-sm font-medium">
-                                <button onClick={() => handleOpenDetailsModal(invoice)} className="text-brand-orange hover:text-orange-400 transition-colors">
-                                    <EyeIcon className="w-5 h-5"/>
-                                </button>
-                            </td>
-                        </tr>
-                    ))}
-                    </tbody>
-                </table>
-                 {filteredInvoices.length === 0 && (
-                    <div className="text-center py-10">
-                        <p className="text-sm text-gray-600 dark:text-brand-text-dark">No se encontraron facturas con ese criterio.</p>
+        {selectedInvoice ? (
+            <InvoiceDetailsView 
+                invoice={selectedInvoice}
+                onClose={handleCloseDetails}
+            />
+        ) : (
+            <>
+                <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
+                    <div>
+                        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Facturación</h1>
+                        <p className="text-gray-600 dark:text-brand-text-dark mt-1">Gestiona y consulta todas las facturas.</p>
                     </div>
-                )}
-            </div>
-             {pageCount > 1 && (
-                    <div className="px-6 py-4 flex items-center justify-between border-t border-brand-orange/20 dark:border-gray-700">
-                        <span className="text-sm text-gray-600 dark:text-brand-text-dark">
-                            Página {currentPage} de {pageCount} ({filteredInvoices.length} resultados)
-                        </span>
-                        <div className="flex items-center space-x-2">
-                            <button
-                                onClick={() => paginate(currentPage - 1)}
-                                disabled={currentPage === 1}
-                                className="px-3 py-1 rounded-md bg-gray-200 dark:bg-brand-bg-dark text-sm font-semibold text-gray-800 dark:text-brand-text enabled:hover:bg-gray-300 dark:enabled:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                                Anterior
-                            </button>
-                            <button
-                                onClick={() => paginate(currentPage + 1)}
-                                disabled={currentPage === pageCount}
-                                className="px-3 py-1 rounded-md bg-gray-200 dark:bg-brand-bg-dark text-sm font-semibold text-gray-800 dark:text-brand-text enabled:hover:bg-gray-300 dark:enabled:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                                Siguiente
-                            </button>
+                    {canEditBilling && (
+                        <button 
+                        onClick={() => setIsSelectServiceModalOpen(true)}
+                        className="bg-brand-orange text-white px-4 py-2 rounded-md font-semibold hover:bg-orange-600 transition-colors self-start md:self-center"
+                        >
+                        Crear Nueva Factura
+                        </button>
+                    )}
+                </div>
+
+                <div className="space-y-4">
+                    <input 
+                        type="text"
+                        placeholder="Buscar por # Factura, Cliente, o # Servicio..."
+                        value={searchTerm}
+                        onChange={e => setSearchTerm(e.target.value)}
+                        className="w-full md:w-1/2 lg:w-1/3 bg-white dark:bg-brand-bg-light border border-gray-300 dark:border-gray-700 rounded-md p-2.5 text-gray-900 dark:text-brand-text focus:ring-brand-orange focus:border-brand-orange"
+                    />
+                    
+                    <div className="bg-brand-orange/10 dark:bg-brand-bg-light rounded-lg shadow-lg border border-brand-orange/30 dark:border-gray-700/50 overflow-hidden">
+                        <div className="overflow-x-auto">
+                            <table className="min-w-full divide-y divide-brand-orange/20 dark:divide-gray-700">
+                                <thead className="bg-black/5 dark:bg-gray-800/50">
+                                <tr>
+                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-brand-text-dark uppercase tracking-wider">Factura #</th>
+                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-brand-text-dark uppercase tracking-wider">Cliente</th>
+                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-brand-text-dark uppercase tracking-wider">Fecha de Emisión</th>
+                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-brand-text-dark uppercase tracking-wider">Total</th>
+                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-brand-text-dark uppercase tracking-wider">Estado</th>
+                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-brand-text-dark uppercase tracking-wider">Acciones</th>
+                                </tr>
+                                </thead>
+                                <tbody className="dark:bg-brand-bg-light divide-y divide-brand-orange/20 dark:divide-gray-700">
+                                {currentInvoices.map((invoice, index) => (
+                                    <tr key={invoice.id} className="hover:bg-brand-orange/20 dark:hover:bg-gray-800/40 transition-colors animate-fadeInUp" style={{ animationDelay: `${Math.min(index * 50, 500)}ms`}}>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900 dark:text-brand-text">{invoice.id}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="text-sm text-gray-900 dark:text-brand-text">{invoice.clientName || `${invoice.serviceOrder?.client.firstName} ${invoice.serviceOrder?.client.lastName}`}</div>
+                                            <div className="text-xs text-gray-600 dark:text-brand-text-dark">{invoice.serviceOrder ? `Servicio: ${invoice.serviceOrder.id}` : 'Servicio: Histórico'}</div>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-brand-text-dark">{new Date(invoice.issueDate).toLocaleDateString('es-ES')}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-brand-text-dark">{new Intl.NumberFormat('es-VE', { style: 'currency', currency: 'VES' }).format(invoice.totalAmount)}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                            <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${INVOICE_STATUS_COLORS[invoice.status]}`}>
+                                                {INVOICE_STATUS_LABELS_ES[invoice.status]}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-left text-sm font-medium">
+                                            <button onClick={() => handleOpenDetails(invoice)} className="text-brand-orange hover:text-orange-400 transition-colors">
+                                                <EyeIcon className="w-5 h-5"/>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
+                                </tbody>
+                            </table>
+                            {filteredInvoices.length === 0 && (
+                                <div className="text-center py-10">
+                                    <p className="text-sm text-gray-600 dark:text-brand-text-dark">No se encontraron facturas con ese criterio.</p>
+                                </div>
+                            )}
                         </div>
+                        {pageCount > 1 && (
+                                <div className="px-6 py-4 flex items-center justify-between border-t border-brand-orange/20 dark:border-gray-700">
+                                    <span className="text-sm text-gray-600 dark:text-brand-text-dark">
+                                        Página {currentPage} de {pageCount} ({filteredInvoices.length} resultados)
+                                    </span>
+                                    <div className="flex items-center space-x-2">
+                                        <button
+                                            onClick={() => paginate(currentPage - 1)}
+                                            disabled={currentPage === 1}
+                                            className="px-3 py-1 rounded-md bg-gray-200 dark:bg-brand-bg-dark text-sm font-semibold text-gray-800 dark:text-brand-text enabled:hover:bg-gray-300 dark:enabled:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        >
+                                            Anterior
+                                        </button>
+                                        <button
+                                            onClick={() => paginate(currentPage + 1)}
+                                            disabled={currentPage === pageCount}
+                                            className="px-3 py-1 rounded-md bg-gray-200 dark:bg-brand-bg-dark text-sm font-semibold text-gray-800 dark:text-brand-text enabled:hover:bg-gray-300 dark:enabled:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        >
+                                            Siguiente
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
                     </div>
-                )}
-        </div>
-      </div>
+                </div>
+            </>
+        )}
     </div>
   );
 };

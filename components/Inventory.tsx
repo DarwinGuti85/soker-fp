@@ -17,7 +17,7 @@ const ChartPanel: React.FC<{ title: string, children: React.ReactNode }> = ({ ti
     </div>
 );
 
-const ItemModal: React.FC<{
+const ItemFormView: React.FC<{
     editingItem: InventoryItem | null;
     onClose: () => void;
     onSave: (itemData: Omit<InventoryItem, 'id'>, id?:string) => void;
@@ -45,39 +45,37 @@ const ItemModal: React.FC<{
     };
 
     return (
-        <div className="fixed inset-0 bg-black/70 z-50 flex justify-center items-center p-4" aria-modal="true" role="dialog">
-            <div className="bg-brand-bg-light rounded-lg shadow-2xl border border-gray-700/50 w-full max-w-lg">
-                <div className="sticky top-0 bg-brand-bg-light z-10 px-6 py-4 border-b border-gray-700 flex justify-between items-center">
-                    <h2 className="text-2xl font-bold text-white">{editingItem ? 'Editar Artículo' : 'Añadir Nuevo Artículo'}</h2>
-                    <button onClick={onClose} className="text-gray-400 hover:text-white">
-                        <CloseIcon className="h-6 w-6" />
-                    </button>
-                </div>
-                <form onSubmit={handleSubmit} className="p-6 space-y-6">
-                    <div className="space-y-2">
-                        <label htmlFor="name" className="block text-sm font-medium text-brand-text-dark">Nombre del Artículo</label>
-                        <input type="text" id="name" name="name" value={formData.name} onChange={handleFormChange} className="w-full bg-brand-bg-dark border border-gray-600 rounded-md p-2 focus:ring-brand-orange focus:border-brand-orange" required />
-                    </div>
-                    <div className="space-y-2">
-                        <label htmlFor="sku" className="block text-sm font-medium text-brand-text-dark">SKU</label>
-                        <input type="text" id="sku" name="sku" value={formData.sku} onChange={handleFormChange} className="w-full bg-brand-bg-dark border border-gray-600 rounded-md p-2 focus:ring-brand-orange focus:border-brand-orange" required />
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <label htmlFor="quantity" className="block text-sm font-medium text-brand-text-dark">Cantidad</label>
-                            <input type="number" id="quantity" name="quantity" value={formData.quantity} onChange={handleFormChange} className="w-full bg-brand-bg-dark border border-gray-600 rounded-md p-2 focus:ring-brand-orange focus:border-brand-orange" required min="0" />
-                        </div>
-                        <div className="space-y-2">
-                            <label htmlFor="price" className="block text-sm font-medium text-brand-text-dark">Precio</label>
-                            <input type="number" id="price" name="price" value={formData.price} onChange={handleFormChange} className="w-full bg-brand-bg-dark border border-gray-600 rounded-md p-2 focus:ring-brand-orange focus:border-brand-orange" required min="0" step="any" />
-                        </div>
-                    </div>
-                    <div className="flex justify-end space-x-4 pt-4">
-                        <button type="button" onClick={onClose} className="bg-gray-600 text-white px-6 py-2 rounded-md font-semibold hover:bg-gray-500 transition-colors">Cancelar</button>
-                        <button type="submit" className="bg-brand-orange text-white px-6 py-2 rounded-md font-semibold hover:bg-orange-600 transition-colors">Guardar</button>
-                    </div>
-                </form>
+        <div className="bg-brand-orange/10 dark:bg-brand-bg-light rounded-lg shadow-lg border border-brand-orange/30 dark:border-gray-700/50 animate-fadeInUp">
+            <div className="px-6 py-4 border-b border-brand-orange/20 dark:border-gray-700 flex justify-between items-center">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{editingItem ? 'Editar Artículo' : 'Añadir Nuevo Artículo'}</h2>
+                <button onClick={onClose} className="bg-gray-600 text-white px-4 py-2 rounded-md font-semibold hover:bg-gray-500 transition-colors">
+                    Volver
+                </button>
             </div>
+            <form onSubmit={handleSubmit} className="p-6 space-y-6">
+                <div className="space-y-2">
+                    <label htmlFor="name" className="block text-sm font-medium text-brand-text-dark">Nombre del Artículo</label>
+                    <input type="text" id="name" name="name" value={formData.name} onChange={handleFormChange} className="w-full bg-brand-bg-dark border border-gray-600 rounded-md p-2 focus:ring-brand-orange focus:border-brand-orange" required />
+                </div>
+                <div className="space-y-2">
+                    <label htmlFor="sku" className="block text-sm font-medium text-brand-text-dark">SKU</label>
+                    <input type="text" id="sku" name="sku" value={formData.sku} onChange={handleFormChange} className="w-full bg-brand-bg-dark border border-gray-600 rounded-md p-2 focus:ring-brand-orange focus:border-brand-orange" required />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                        <label htmlFor="quantity" className="block text-sm font-medium text-brand-text-dark">Cantidad</label>
+                        <input type="number" id="quantity" name="quantity" value={formData.quantity} onChange={handleFormChange} className="w-full bg-brand-bg-dark border border-gray-600 rounded-md p-2 focus:ring-brand-orange focus:border-brand-orange" required min="0" />
+                    </div>
+                    <div className="space-y-2">
+                        <label htmlFor="price" className="block text-sm font-medium text-brand-text-dark">Precio</label>
+                        <input type="number" id="price" name="price" value={formData.price} onChange={handleFormChange} className="w-full bg-brand-bg-dark border border-gray-600 rounded-md p-2 focus:ring-brand-orange focus:border-brand-orange" required min="0" step="any" />
+                    </div>
+                </div>
+                <div className="flex justify-end space-x-4 pt-4">
+                    <button type="button" onClick={onClose} className="bg-gray-600 text-white px-6 py-2 rounded-md font-semibold hover:bg-gray-500 transition-colors">Cancelar</button>
+                    <button type="submit" className="bg-brand-orange text-white px-6 py-2 rounded-md font-semibold hover:bg-orange-600 transition-colors">Guardar</button>
+                </div>
+            </form>
         </div>
     );
 };
@@ -87,7 +85,7 @@ const Inventory: React.FC = () => {
   const { inventory, addInventoryItem, updateInventoryItem } = useData();
   const { hasPermission } = useAuth();
   const { theme } = useTheme();
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isFormVisible, setIsFormVisible] = useState(false);
   const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
   const [filter, setFilter] = useState('');
 
@@ -145,13 +143,13 @@ const Inventory: React.FC = () => {
   }, [inventory]);
 
 
-  const handleOpenModal = (item: InventoryItem | null) => {
+  const handleOpenForm = (item: InventoryItem | null) => {
     setEditingItem(item);
-    setIsModalOpen(true);
+    setIsFormVisible(true);
   };
 
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
+  const handleCloseForm = () => {
+    setIsFormVisible(false);
     setEditingItem(null);
   };
   
@@ -161,18 +159,21 @@ const Inventory: React.FC = () => {
     } else {
         addInventoryItem(itemData);
     }
-    handleCloseModal();
+    handleCloseForm();
   };
 
   const canEdit = hasPermission('inventory', 'edit');
 
+  if (isFormVisible && canEdit) {
+    return <ItemFormView editingItem={editingItem} onClose={handleCloseForm} onSave={handleSaveItem} />;
+  }
+
   return (
     <div className="space-y-6">
-      {isModalOpen && canEdit && <ItemModal editingItem={editingItem} onClose={handleCloseModal} onSave={handleSaveItem} />}
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Inventario</h1>
         {canEdit && (
-            <button onClick={() => handleOpenModal(null)} className="bg-brand-orange text-white px-4 py-2 rounded-md font-semibold hover:bg-orange-600 transition-colors">
+            <button onClick={() => handleOpenForm(null)} className="bg-brand-orange text-white px-4 py-2 rounded-md font-semibold hover:bg-orange-600 transition-colors">
             Añadir Nuevo Artículo
             </button>
         )}
@@ -189,7 +190,7 @@ const Inventory: React.FC = () => {
                 className="w-full bg-white dark:bg-brand-bg-light border border-gray-300 dark:border-gray-700 rounded-md p-2.5 text-gray-900 dark:text-brand-text focus:ring-brand-orange focus:border-brand-orange"
             />
             <div className="bg-brand-orange/10 dark:bg-brand-bg-light rounded-lg shadow-lg border border-brand-orange/30 dark:border-gray-700/50 overflow-hidden">
-                <div className="overflow-y-auto h-[calc(100vh-280px)] custom-scrollbar">
+                <div className="overflow-auto h-[60vh] lg:h-[calc(100vh-280px)] custom-scrollbar">
                     <table className="min-w-full divide-y divide-brand-orange/20 dark:divide-gray-700">
                         <thead className="bg-black/5 dark:bg-gray-800/50 sticky top-0 z-10">
                         <tr>
@@ -211,7 +212,7 @@ const Inventory: React.FC = () => {
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-brand-text-dark">{new Intl.NumberFormat('es-VE', { style: 'currency', currency: 'VES' }).format(item.price)}</td>
                             <td className="px-6 py-4 whitespace-nowrap text-left text-sm font-medium">
                                 {canEdit ? (
-                                    <button onClick={() => handleOpenModal(item)} className="text-brand-orange hover:text-orange-400 transition-colors">
+                                    <button onClick={() => handleOpenForm(item)} className="text-brand-orange hover:text-orange-400 transition-colors">
                                         <EditIcon className="w-5 h-5"/>
                                     </button>
                                 ) : (

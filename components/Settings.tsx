@@ -6,18 +6,17 @@ import { User, UserRole, CompanyInfo, Module, PermissionSet } from '../types';
 import { ROLE_LABELS_ES, USER_ROLES, MODULES, MODULE_LABELS_ES } from '../constants';
 import { CloseIcon, EditIcon, TrashIcon, SaveIcon } from './ui/icons';
 
-const UserModal: React.FC<{
-  isOpen: boolean;
+const UserFormView: React.FC<{
   onClose: () => void;
   onSave: (userData: Omit<User, 'id'>, id?: string) => void;
   selectedUser: User | null;
-}> = ({ isOpen, onClose, onSave, selectedUser }) => {
+}> = ({ onClose, onSave, selectedUser }) => {
   const initialUserState: Omit<User, 'id'> = { username: '', firstName: '', lastName: '', email: '', role: UserRole.CASHIER, password: '' };
   const [userFormData, setUserFormData] = useState(selectedUser ? { ...selectedUser, password: '' } : initialUserState);
 
   React.useEffect(() => {
     setUserFormData(selectedUser ? { ...selectedUser, password: '' } : initialUserState);
-  }, [selectedUser, isOpen]);
+  }, [selectedUser]);
   
   const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -37,15 +36,12 @@ const UserModal: React.FC<{
     }
     onSave(userFormData, selectedUser?.id);
   };
-  
-  if(!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/70 z-50 flex justify-center items-center p-4">
-      <div className="bg-brand-bg-light rounded-lg shadow-2xl border border-gray-700/50 w-full max-w-lg">
-        <div className="px-6 py-4 border-b border-gray-700 flex justify-between items-center">
-          <h2 className="text-2xl font-bold text-white">{selectedUser ? 'Editar Usuario' : 'Añadir Nuevo Usuario'}</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-white"><CloseIcon className="h-6 w-6" /></button>
+    <div className="bg-brand-orange/10 dark:bg-brand-bg-light rounded-lg shadow-lg border border-brand-orange/30 dark:border-gray-700/50 animate-fadeInUp">
+        <div className="px-6 py-4 border-b border-brand-orange/20 dark:border-gray-700 flex justify-between items-center">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{selectedUser ? 'Editar Usuario' : 'Añadir Nuevo Usuario'}</h2>
+            <button onClick={onClose} className="bg-gray-600 text-white px-4 py-2 rounded-md font-semibold hover:bg-gray-500 transition-colors">Volver a Ajustes</button>
         </div>
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -83,7 +79,6 @@ const UserModal: React.FC<{
             <button type="submit" className="bg-brand-orange text-white px-6 py-2 rounded-md font-semibold hover:bg-orange-600 transition-colors">Guardar</button>
           </div>
         </form>
-      </div>
     </div>
   );
 };
@@ -180,7 +175,7 @@ const Settings: React.FC = () => {
     const { user: currentUser, users, addUser, updateUser, deleteUser, hasPermission } = useAuth();
     const { companyInfo, updateCompanyInfo } = useData();
   
-    const [isUserModalOpen, setIsUserModalOpen] = useState(false);
+    const [isUserFormVisible, setIsUserFormVisible] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
@@ -209,14 +204,14 @@ const Settings: React.FC = () => {
         [UserRole.TECHNICIAN]: 'bg-green-500/20 text-green-400',
     };
 
-    const openAddModal = () => {
+    const openAddUserForm = () => {
         setSelectedUser(null);
-        setIsUserModalOpen(true);
+        setIsUserFormVisible(true);
     };
 
-    const openEditModal = (user: User) => {
+    const openEditUserForm = (user: User) => {
         setSelectedUser(user);
-        setIsUserModalOpen(true);
+        setIsUserFormVisible(true);
     };
 
     const openDeleteModal = (user: User) => {
@@ -224,8 +219,8 @@ const Settings: React.FC = () => {
         setIsDeleteModalOpen(true);
     };
   
-    const closeModal = () => {
-        setIsUserModalOpen(false);
+    const closeForms = () => {
+        setIsUserFormVisible(false);
         setIsDeleteModalOpen(false);
         setSelectedUser(null);
     };
@@ -237,30 +232,32 @@ const Settings: React.FC = () => {
         } else {
             addUser(userData);
         }
-        closeModal();
+        closeForms();
     };
   
     const handleDelete = () => {
         if (selectedUser) {
             deleteUser(selectedUser.id);
-            closeModal();
+            closeForms();
         }
     };
 
     const canEditUsers = hasPermission('users', 'edit');
     const canDeleteUsers = hasPermission('users', 'delete');
 
+    if(isUserFormVisible){
+        return <UserFormView 
+            onClose={closeForms}
+            onSave={handleSaveUser}
+            selectedUser={selectedUser}
+        />
+    }
+
     return (
         <div className="space-y-8">
-            <UserModal 
-                isOpen={isUserModalOpen}
-                onClose={closeModal}
-                onSave={handleSaveUser}
-                selectedUser={selectedUser}
-            />
             <DeleteConfirmationModal
                 isOpen={isDeleteModalOpen}
-                onClose={closeModal}
+                onClose={closeForms}
                 onConfirm={handleDelete}
                 user={selectedUser}
             />
@@ -311,7 +308,7 @@ const Settings: React.FC = () => {
                 <div className="flex justify-between items-center mb-4">
                     <h2 className="text-xl font-bold text-gray-900 dark:text-white">Gestión de Usuarios</h2>
                     {canEditUsers && (
-                        <button onClick={openAddModal} className="bg-brand-orange text-white px-4 py-2 rounded-md font-semibold hover:bg-orange-600 transition-colors">
+                        <button onClick={openAddUserForm} className="bg-brand-orange text-white px-4 py-2 rounded-md font-semibold hover:bg-orange-600 transition-colors">
                             Añadir Nuevo Usuario
                         </button>
                     )}
@@ -340,7 +337,7 @@ const Settings: React.FC = () => {
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-left text-sm font-medium">
                                         <div className="flex items-center space-x-4">
-                                            {canEditUsers && <button onClick={() => openEditModal(user)} className="text-brand-orange hover:text-orange-400 transition-colors"><EditIcon className="w-5 h-5"/></button>}
+                                            {canEditUsers && <button onClick={() => openEditUserForm(user)} className="text-brand-orange hover:text-orange-400 transition-colors"><EditIcon className="w-5 h-5"/></button>}
                                             {canDeleteUsers && <button onClick={() => openDeleteModal(user)} disabled={currentUser?.id === user.id} className="text-red-500 hover:text-red-400 transition-colors disabled:text-gray-600 disabled:cursor-not-allowed"><TrashIcon className="w-5 h-5"/></button>}
                                         </div>
                                     </td>

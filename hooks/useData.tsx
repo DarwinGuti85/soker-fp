@@ -45,13 +45,25 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
   
   const addService = useCallback((serviceData: Omit<ServiceOrder, 'id'|'createdAt'|'updatedAt'>) => {
-    const newService: ServiceOrder = {
-        ...serviceData,
-        id: `service-${Date.now()}`,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-    };
-    setServices(prev => [newService, ...prev]);
+    setServices(prevServices => {
+        const serviceNumbers = prevServices
+            .map(s => s.id)
+            .filter(id => id.startsWith('S'))
+            .map(id => parseInt(id.substring(1), 10))
+            .filter(num => !isNaN(num));
+        
+        const nextServiceNumber = serviceNumbers.length > 0 ? Math.max(...serviceNumbers) + 1 : 1;
+        
+        const newServiceId = `S${String(nextServiceNumber).padStart(6, '0')}`;
+
+        const newService: ServiceOrder = {
+            ...serviceData,
+            id: newServiceId,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+        };
+        return [newService, ...prevServices];
+    });
   }, []);
 
   const updateInventoryItem = useCallback((itemId: string, updates: Partial<InventoryItem>) => {
@@ -108,12 +120,22 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
 
   const addInvoice = useCallback((invoiceData: Omit<Invoice, 'id'>) => {
+    const newInvoiceNumbers = invoices
+      .map(inv => inv.id)
+      .filter(id => id.startsWith('FN-'))
+      .map(id => parseInt(id.substring(3), 10))
+      .filter(num => !isNaN(num));
+
+    const nextInvoiceNumber = newInvoiceNumbers.length > 0 ? Math.max(...newInvoiceNumbers) + 1 : 1;
+    
+    const newInvoiceId = `FN-${String(nextInvoiceNumber).padStart(6, '0')}`;
+
     const newInvoice: Invoice = {
       ...invoiceData,
-      id: `FACT-${String(1001 + invoices.length).padStart(4, '0')}`,
+      id: newInvoiceId,
     };
     setInvoices(prev => [newInvoice, ...prev]);
-  }, [invoices.length]);
+  }, [invoices]);
 
   const addHistoricalInvoice = useCallback((invoiceData: Omit<Invoice, 'id'> & { id: string }) => {
     const existing = invoices.find(inv => inv.id === invoiceData.id);
